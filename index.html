@@ -177,6 +177,8 @@
                     <div class="form-group"><label>Nome Completo</label><input type="text" id="t_nome_comp" required></div>
                     <div class="form-group"><label>Data Nascimento</label><input type="date" id="t_data_nasc" required></div>
                     <div class="form-group"><label>Nacionalidade</label><input type="text" id="t_nacionalidade" value="Portuguesa"></div>
+                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="t_clube_anterior" placeholder="Ex: ADR Retaxo"></div>
+                    <div class="form-group"><label>Primeira Época</label><input type="text" id="t_primeira_epoca" placeholder="Ex: 2025/2026"></div>
                     <button type="submit">Adicionar Treinador</button>
                 </form>
             </div>
@@ -184,7 +186,16 @@
                 <h2>Lista de Staff Técnico</h2>
                 <table id="tabelaTreinadores">
                     <thead>
-                        <tr><th>Nome Desportivo</th><th>Nome Completo</th><th>Data Nascimento</th><th>Estado</th><th>Ações</th></tr>
+                        <tr>
+                            <th>Nome Desportivo</th>
+                            <th>Nome Completo</th>
+                            <th>Data Nascimento</th>
+                            <th>Nacionalidade</th>
+                            <th>Clube Anterior</th>
+                            <th>Primeira Época</th>
+                            <th>Estado</th>
+                            <th>Ações</th>
+                        </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -418,14 +429,20 @@
 
         // --- STAFF & TREINADORES ---
         async function carregarTreinadores() {
-            const { data } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
+            const { data, error } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
+            if (error) { console.error('Erro ao buscar treinadores:', error); return; }
             const tbody = document.querySelector('#tabelaTreinadores tbody');
             tbody.innerHTML = '';
             data?.forEach(t => {
                 const tr = document.createElement('tr');
                 if(!t.ativo) tr.className = 'inativo-row';
                 tr.innerHTML = `
-                    <td><strong>${t.nome_desportivo}</strong></td><td>${t.nome_completo}</td><td>${t.data_nascimento}</td>
+                    <td><strong>${t.nome_desportivo}</strong></td>
+                    <td>${t.nome_completo}</td>
+                    <td>${t.data_nascimento || '-'}</td>
+                    <td>${t.nacionalidade || '-'}</td>
+                    <td>${t.clube_anterior || '-'}</td>
+                    <td>${t.primeira_epoca || '-'}</td>
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
                         <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
@@ -442,7 +459,10 @@
                 nome_desportivo: document.getElementById('t_nome_desp').value,
                 nome_completo: document.getElementById('t_nome_comp').value,
                 data_nascimento: document.getElementById('t_data_nasc').value,
-                nacionalidade: document.getElementById('t_nacionalidade').value
+                nacionalidade: document.getElementById('t_nacionalidade').value || null,
+                clube_anterior: document.getElementById('t_clube_anterior').value || null,
+                primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
+                ativo: true
             };
             await dbClient.from('treinadores').insert([novo]);
             document.getElementById('formTreinador').reset();
