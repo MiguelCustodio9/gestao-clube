@@ -423,13 +423,45 @@
         function ordenarDados(a, b, campo) {
             const valorA = a[campo] ?? '';
             const valorB = b[campo] ?? '';
-            const camposNumericos = ['jogos_clube', 'golos_clube', 'golos_sofridos', 'assistencias_clube'];
-            if (camposNumericos.includes(campo)) {
-                return (parseInt(valorA, 10) || 0) - (parseInt(valorB, 10) || 0);
+
+            // Campos numéricos que devem ordenar do maior para o menor
+            const camposNumericosDesc = ['jogos_clube', 'golos_clube', 'golos_sofridos', 'assistencias_clube'];
+            if (camposNumericosDesc.includes(campo)) {
+                return (parseInt(valorB, 10) || 0) - (parseInt(valorA, 10) || 0);
             }
+
+            // Data
             if (campo === 'data_nascimento') {
                 return new Date(valorA) - new Date(valorB);
             }
+
+            // Ordenação customizada para posições
+            if (campo === 'posicao') {
+                const ordemPos = ['guarda redes', 'fixo', 'fixo/ala', 'ala', 'ala/pivot', 'pivot', 'universal'];
+                const va = String(valorA || '').toLowerCase().trim();
+                const vb = String(valorB || '').toLowerCase().trim();
+                const ia = ordemPos.indexOf(va);
+                const ib = ordemPos.indexOf(vb);
+                if (ia === -1 && ib === -1) return va.localeCompare(vb);
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            }
+
+            // Ordenação customizada para escalões/escalao_etario
+            if (campo === 'escalao' || campo === 'escalao_etario') {
+                const ordemEsc = ['traquinas', 'iniciadas', 'juniores', 'seniores'];
+                const va = String(valorA || '').toLowerCase().trim();
+                const vb = String(valorB || '').toLowerCase().trim();
+                const ia = ordemEsc.indexOf(va);
+                const ib = ordemEsc.indexOf(vb);
+                if (ia === -1 && ib === -1) return va.localeCompare(vb);
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            }
+
+            // Fallback: string compare
             return String(valorA).toLowerCase().localeCompare(String(valorB).toLowerCase());
         }
 
@@ -542,10 +574,10 @@
                     <td>${j.assistencias_clube || 0}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
+                        <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
                         <button class="btn-action btn-view" onclick="verJogadora('${dadosBase64}')">Ver</button>
                         <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
                         <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -593,9 +625,9 @@
                     <td>${t.primeira_epoca || '-'}</td>
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
+                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                         <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
                         <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -639,16 +671,19 @@
                 return;
             }
             exibicao.forEach(v => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${v.nome}</strong></td>
-                        <td>${v.tipo}</td>
-                        <td>${v.epoca}</td>
-                        <td>${v.escalao_equipa}</td>
-                        <td>${v.funcao_treinador || '-'}</td>
-                        <td><button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button></td>
-                    </tr>
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${v.nome}</strong></td>
+                    <td>${v.tipo}</td>
+                    <td>${v.epoca}</td>
+                    <td>${v.escalao_equipa}</td>
+                    <td>${v.funcao_treinador || '-'}</td>
+                    <td>
+                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button>
+                        <button class="btn-action btn-view" onclick="verVinculo(${v.id_vinculo})">Ver</button>
+                    </td>
                 `;
+                tbody.appendChild(tr);
             });
         }
 
