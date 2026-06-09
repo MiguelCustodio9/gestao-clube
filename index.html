@@ -179,6 +179,7 @@
                     <div class="form-group"><label>Nacionalidade</label><input type="text" id="t_nacionalidade" value="Portuguesa"></div>
                     <div class="form-group"><label>Clube Anterior</label><input type="text" id="t_clube_anterior" placeholder="Ex: ADR Retaxo"></div>
                     <div class="form-group"><label>Primeira Época</label><input type="text" id="t_primeira_epoca" placeholder="Ex: 2025/2026"></div>
+                    <div class="form-group"><label>Ativo</label><input type="checkbox" id="t_ativo" checked></div>
                     <button type="submit">Adicionar Treinador</button>
                 </form>
             </div>
@@ -462,7 +463,7 @@
                 nacionalidade: document.getElementById('t_nacionalidade').value || null,
                 clube_anterior: document.getElementById('t_clube_anterior').value || null,
                 primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
-                ativo: true
+                ativo: document.getElementById('t_ativo').checked
             };
             await dbClient.from('treinadores').insert([novo]);
             document.getElementById('formTreinador').reset();
