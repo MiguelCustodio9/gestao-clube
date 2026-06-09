@@ -408,6 +408,68 @@
         </div>
     </div>
 
+    <div id="modalEditarTreinador" class="modal">
+        <div class="modal-content">
+            <h3>Editar Treinador/Staff</h3>
+            <input type="hidden" id="et_id">
+            <div class="form-group"><label>Nome Desportivo</label><input type="text" id="et_nome_desp"></div>
+            <div class="form-group"><label>Nome Completo</label><input type="text" id="et_nome_comp"></div>
+            <div class="form-group"><label>Data Nascimento</label><input type="date" id="et_data_nasc"></div>
+            <div class="form-group"><label>Nacionalidade</label><input type="text" id="et_nacionalidade"></div>
+            <div class="form-group"><label>Clube Anterior</label><input type="text" id="et_clube_anterior"></div>
+            <div class="form-group"><label>Primeira Época</label><input type="text" id="et_primeira_epoca"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoTreinador()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVerVinculo" class="modal">
+        <div class="modal-content">
+            <h3>Ver Vínculo</h3>
+            <div class="form-group"><label>Tipo</label><input type="text" id="vv_tipo" readonly></div>
+            <div class="form-group"><label>Nome</label><input type="text" id="vv_nome" readonly></div>
+            <div class="form-group"><label>Época</label><input type="text" id="vv_epoca" readonly></div>
+            <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="vv_escalao_equipa" readonly></div>
+            <div class="form-group"><label>Função Técnico</label><input type="text" id="vv_funcao_treinador" readonly></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditarVinculo" class="modal">
+        <div class="modal-content">
+            <h3>Editar Vínculo</h3>
+            <input type="hidden" id="ev_id">
+            <div class="form-group">
+                <label>Tipo de Participante</label>
+                <select id="ev_tipo" onchange="atualizarSelectParticipantesEdicao()">
+                    <option value="jogadora">Jogadora</option>
+                    <option value="treinador">Treinador/Staff</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Participante</label><select id="ev_participante" required></select></div>
+            <div class="form-group"><label>Época</label><input type="text" id="ev_epoca" required></div>
+            <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="ev_escalao" required></div>
+            <div class="form-group"><label>Função (Apenas Staff)</label>
+                <select id="ev_funcao">
+                    <option value="">-- Não se aplica --</option>
+                    <option value="treinador principal">Treinador Principal</option>
+                    <option value="treinador adjunto">Treinador Adjunto</option>
+                    <option value="treinador de GR">Treinador de GR</option>
+                    <option value="delegado">Delegado</option>
+                    <option value="fisioterapeuta">Fisioterapeuta</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoVinculo()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const URL_SUPABASE = 'https://lwehgnistggtekqbshur.supabase.co'; 
         const KEY_SUPABASE = 'sb_publishable_Dk0jfkK9_BDhMBej6NXb0w_3cdVJgt9'; 
@@ -506,6 +568,9 @@
             document.getElementById('modalEditarJogadora').style.display = 'none';
             document.getElementById('modalVerJogadora').style.display = 'none';
             document.getElementById('modalVerTreinador').style.display = 'none';
+            document.getElementById('modalEditarTreinador').style.display = 'none';
+            document.getElementById('modalVerVinculo').style.display = 'none';
+            document.getElementById('modalEditarVinculo').style.display = 'none';
         }
         
         function calcularIdade(dataNasc) {
@@ -613,7 +678,7 @@
                             <button class="btn-action btn-view" onclick="verJogadora('${dadosBase64}')">Ver</button>
                             <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
                             <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
-                            <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
+                            <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas})">X</button>
                         </div>
                     </td>
                 `;
@@ -664,6 +729,7 @@
                     <td>
                         <div class="action-group">
                             <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
+                            <button class="btn-action btn-edit" onclick="abrirModalTreinador('${dadosBase64}')">Editar</button>
                             <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
                             <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                         </div>
@@ -681,7 +747,7 @@
             console.debug('carregarVinculos chamado, dbClient?', !!dbClient);
             if(!dbClient) { console.error('carregarVinculos: dbClient não inicializado'); return; }
             const { data, error } = await dbClient.from('vinculo_epocas').select(`
-                id_vinculo, epoca, escalao_equipa, funcao_treinador,
+                id_vinculo, id_jogadora, id_treinador, epoca, escalao_equipa, funcao_treinador,
                 jogadoras(nome_desportivo), treinadores(nome_desportivo)
             `);
             console.debug('carregarVinculos resposta', { data, error });
@@ -692,7 +758,9 @@
                 tipo: v.jogadoras ? 'Jogadora' : 'Staff Técnico',
                 epoca: v.epoca,
                 escalao_equipa: v.escalao_equipa,
-                funcao_treinador: v.funcao_treinador
+                funcao_treinador: v.funcao_treinador,
+                id_jogadora: v.id_jogadora || null,
+                id_treinador: v.id_treinador || null
             }));
             renderTabelaVinculos();
             console.debug('vínculos carregados:', estado.vinculos.length);
@@ -711,7 +779,8 @@
             }
             exibicao.forEach(v => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
+                const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(v)));
+            tr.innerHTML = `
                     <td><strong>${v.nome}</strong></td>
                     <td>${v.tipo}</td>
                     <td>${v.epoca}</td>
@@ -719,7 +788,8 @@
                     <td>${v.funcao_treinador || '-'}</td>
                     <td>
                         <div class="action-group">
-                            <button class="btn-action btn-view" onclick="verVinculo(${v.id_vinculo})">Ver</button>
+                            <button class="btn-action btn-view" onclick="verVinculo('${dadosBase64}')">Ver</button>
+                            <button class="btn-action btn-edit" onclick="abrirModalVinculo('${dadosBase64}')">Editar</button>
                             <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button>
                         </div>
                     </td>
@@ -830,6 +900,93 @@
             document.getElementById('vt_ativo').value = t.ativo ? 'Sim' : 'Não';
         }
 
+        function abrirModalTreinador(base64) {
+            const t = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalEditarTreinador').style.display = 'block';
+            document.getElementById('et_id').value = t.id_treinador;
+            document.getElementById('et_nome_desp').value = t.nome_desportivo || '';
+            document.getElementById('et_nome_comp').value = t.nome_completo || '';
+            document.getElementById('et_data_nasc').value = t.data_nascimento || '';
+            document.getElementById('et_nacionalidade').value = t.nacionalidade || '';
+            document.getElementById('et_clube_anterior').value = t.clube_anterior || '';
+            document.getElementById('et_primeira_epoca').value = t.primeira_epoca || '';
+        }
+
+        async function salvarEdicaoTreinador() {
+            const id = document.getElementById('et_id').value;
+            const dataNasc = document.getElementById('et_data_nasc').value;
+            try {
+                validarDataNascimento(dataNasc);
+                await dbClient.from('treinadores').update({
+                    nome_desportivo: document.getElementById('et_nome_desp').value,
+                    nome_completo: document.getElementById('et_nome_comp').value,
+                    data_nascimento: dataNasc,
+                    nacionalidade: document.getElementById('et_nacionalidade').value || null,
+                    clube_anterior: document.getElementById('et_clube_anterior').value || null,
+                    primeira_epoca: document.getElementById('et_primeira_epoca').value || null
+                }).eq('id_treinador', id);
+                fecharModais();
+                carregarTreinadores();
+            } catch (err) {
+                alert(err.message || 'Erro ao validar os dados do treinador.');
+            }
+        }
+
+        function verVinculo(base64) {
+            const v = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalVerVinculo').style.display = 'block';
+            document.getElementById('vv_tipo').value = v.tipo || '-';
+            document.getElementById('vv_nome').value = v.nome || '-';
+            document.getElementById('vv_epoca').value = v.epoca || '-';
+            document.getElementById('vv_escalao_equipa').value = v.escalao_equipa || '-';
+            document.getElementById('vv_funcao_treinador').value = v.funcao_treinador || '-';
+        }
+
+        async function atualizarSelectParticipantesEdicao(selecionadoId = null) {
+            const tipo = document.getElementById('ev_tipo').value;
+            const select = document.getElementById('ev_participante');
+            select.innerHTML = '';
+            if (!dbClient) return;
+
+            if (tipo === 'jogadora') {
+                const { data, error } = await dbClient.from('jogadoras').select('id_jogadora, nome_desportivo').eq('ativo', true);
+                if (error) { console.error('Erro ao carregar jogadoras:', error); }
+                data?.forEach(x => select.innerHTML += `<option value="${x.id_jogadora}" ${x.id_jogadora == selecionadoId ? 'selected' : ''}>${x.nome_desportivo}</option>`);
+                document.getElementById('ev_funcao').disabled = true;
+            } else {
+                const { data, error } = await dbClient.from('treinadores').select('id_treinador, nome_desportivo').eq('ativo', true);
+                if (error) { console.error('Erro ao carregar treinadores:', error); }
+                data?.forEach(x => select.innerHTML += `<option value="${x.id_treinador}" ${x.id_treinador == selecionadoId ? 'selected' : ''}>${x.nome_desportivo}</option>`);
+                document.getElementById('ev_funcao').disabled = false;
+            }
+        }
+
+        async function abrirModalVinculo(base64) {
+            const v = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalEditarVinculo').style.display = 'block';
+            document.getElementById('ev_id').value = v.id_vinculo;
+            document.getElementById('ev_tipo').value = v.tipo === 'Staff Técnico' ? 'treinador' : 'jogadora';
+            document.getElementById('ev_epoca').value = v.epoca || '';
+            document.getElementById('ev_escalao').value = v.escalao_equipa || '';
+            document.getElementById('ev_funcao').value = v.funcao_treinador || '';
+            await atualizarSelectParticipantesEdicao(v.tipo === 'Staff Técnico' ? v.id_treinador : v.id_jogadora);
+        }
+
+        async function salvarEdicaoVinculo() {
+            const id = document.getElementById('ev_id').value;
+            const tipo = document.getElementById('ev_tipo').value;
+            const participante = document.getElementById('ev_participante').value;
+            await dbClient.from('vinculo_epocas').update({
+                epoca: document.getElementById('ev_epoca').value,
+                escalao_equipa: document.getElementById('ev_escalao').value,
+                id_jogadora: tipo === 'jogadora' ? participante : null,
+                id_treinador: tipo === 'treinador' ? participante : null,
+                funcao_treinador: tipo === 'treinador' ? document.getElementById('ev_funcao').value || null : null
+            }).eq('id_vinculo', id);
+            fecharModais();
+            carregarVinculos();
+        }
+
         async function salvarEdicaoJogadora() {
             const id = document.getElementById('ej_id').value;
             const origem = document.getElementById('ej_view_origem').value;
@@ -875,29 +1032,36 @@
             else carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
         }
 
-        async function eliminarJogadora(id, eraAtiva, selector) {
+        async function eliminarJogadora(id, eraAtiva) {
             if(confirm('Remover esta atleta permanentemente da base de dados?')) {
                 await dbClient.from('jogadoras').delete().eq('id_jogadora', id);
-                carregarSeccaoJogadoras(eraAtiva, selector);
+                const target = eraAtiva ? '#tabelaAtivas tbody' : '#tabelaInativas tbody';
+                carregarSeccaoJogadoras(eraAtiva, target);
             }
         }
 
         // --- STAFF & TREINADORES ---
         document.getElementById('formTreinador').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const novo = {
-                nome_desportivo: document.getElementById('t_nome_desp').value,
-                nome_completo: document.getElementById('t_nome_comp').value,
-                data_nascimento: document.getElementById('t_data_nasc').value,
-                nacionalidade: document.getElementById('t_nacionalidade').value || null,
-                clube_anterior: document.getElementById('t_clube_anterior').value || null,
-                primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
-                ativo: true
-            };
-            const { error } = await dbClient.from('treinadores').insert([novo]);
-            if (error) { console.error('Erro ao inserir treinador:', error); return; }
-            document.getElementById('formTreinador').reset();
-            carregarTreinadores();
+            const dataNasc = document.getElementById('t_data_nasc').value;
+            try {
+                validarDataNascimento(dataNasc);
+                const novo = {
+                    nome_desportivo: document.getElementById('t_nome_desp').value,
+                    nome_completo: document.getElementById('t_nome_comp').value,
+                    data_nascimento: dataNasc,
+                    nacionalidade: document.getElementById('t_nacionalidade').value || null,
+                    clube_anterior: document.getElementById('t_clube_anterior').value || null,
+                    primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
+                    ativo: true
+                };
+                const { error } = await dbClient.from('treinadores').insert([novo]);
+                if (error) { console.error('Erro ao inserir treinador:', error); return; }
+                document.getElementById('formTreinador').reset();
+                carregarTreinadores();
+            } catch (err) {
+                alert(err.message || 'Erro ao validar os dados do treinador.');
+            }
         });
 
         async function mudarEstadoTreinador(id, est) {
@@ -989,8 +1153,10 @@
             const hoje = getDataHoje();
             const jDataNasc = document.getElementById('j_data_nasc');
             const ejDataNasc = document.getElementById('ej_data_nasc');
+            const etDataNasc = document.getElementById('et_data_nasc');
             if (jDataNasc) jDataNasc.max = hoje;
             if (ejDataNasc) ejDataNasc.max = hoje;
+            if (etDataNasc) etDataNasc.max = hoje;
 
             // carregar todas as listas para popular o estado inicial
             if (dbClient) {
