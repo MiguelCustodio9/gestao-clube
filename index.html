@@ -3,24 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGC - Sistema de Gestão de Clube</title>
+    <title>SGC - Núcleo SCP Castelo Branco</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #005a43;
             --primary-dark: #004231;
+            --sporting-green: #00a650;
             --bg: #f4f7f6;
             --text: #333;
             --white: #ffffff;
         }
         body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
         
-        /* Menu Lateral */
-        .sidebar { width: 260px; background-color: var(--primary-dark); color: var(--white); display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .sidebar-header { padding: 20px; text-align: center; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-        .sidebar-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); }
+        /* Menu Lateral Premium */
+        .sidebar { width: 280px; background-color: var(--primary-dark); color: var(--white); display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.15); }
+        
+        .sidebar-brand { padding: 25px 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); background-color: rgba(0,0,0,0.15); }
+        .club-logo { width: 75px; height: 75px; background-color: var(--white); border-radius: 50%; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); font-size: 11px; border: 3px solid var(--sporting-green); box-shadow: 0 2px 5px rgba(0,0,0,0.2); overflow: hidden; }
+        .club-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .club-name { font-size: 13px; font-weight: bold; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.5px; color: #e1e1e1; }
+        
+        .sidebar-menu { list-style: none; padding: 10px 0; margin: 0; flex-grow: 1; overflow-y: auto; }
+        .sidebar-item { padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 4px solid transparent; font-size: 14px; font-weight: 500; }
+        .sidebar-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .sidebar-item.active { background-color: var(--primary); border-left-color: var(--sporting-green); color: var(--white); }
+        .sidebar-icon { font-size: 16px; opacity: 0.8; width: 20px; text-align: center; }
         
         /* Área de Conteúdo */
         .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; position: relative; }
@@ -35,27 +43,29 @@
         .stat-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; text-transform: uppercase; }
         .stat-card p { margin: 0; font-size: 24px; font-weight: bold; color: var(--primary); }
         
-        /* Formulários */
+        /* Formulários Layout em Linha */
         .form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
         .form-group { display: flex; flex-direction: column; }
-        .form-group label { margin-bottom: 5px; font-weight: bold; font-size: 13px; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 200px; box-sizing: border-box; }
-        button { background-color: var(--primary); color: var(--white); padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .form-group label { margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #444; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 190px; box-sizing: border-box; font-size: 13px; }
+        button { background-color: var(--primary); color: var(--white); padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         button:hover { background-color: var(--primary-dark); }
         
-        /* Tabelas */
-        table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* Tabelas Modernas */
+        table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 10px; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: var(--primary); color: var(--white); }
-        tr.inativo-row { background-color: #fafafa; opacity: 0.6; }
+        th { background-color: var(--primary); color: var(--white); font-weight: 600; font-size: 13px; }
+        td { font-size: 14px; }
+        tr.inativo-row { background-color: #fbfbfb; opacity: 0.75; }
         
-        /* Badges Ovais Modernas para Estado */
+        /* Badges Oitavadas */
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
         .badge-ativa { background-color: #e6f4ea; color: #137333; }
         .badge-inativa { background-color: #fce8e6; color: #c5221f; }
         
-        /* Ações */
-        .btn-action { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; color: white; }
+        /* Botões de Ação rápidos */
+        .btn-action { padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 4px; color: white; transition: opacity 0.2s; }
+        .btn-action:hover { opacity: 0.9; }
         .btn-edit { background-color: #ff9800; }
         .btn-status { background-color: #2196f3; }
         .btn-delete { background-color: #f44336; }
@@ -66,26 +76,33 @@
         .modal-content h3 { margin-top: 0; color: var(--primary); }
         .modal-content .form-group { width: 100%; margin-bottom: 12px; }
         .modal-content input, .modal-content select { width: 100%; }
+        .modal-actions { text-align: right; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
-        <div class="sidebar-header">Painel de Controlo</div>
+        <div class="sidebar-brand">
+            <div class="club-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/pt/b/b2/Sporting_Clube_de_Portugal.png" alt="SCP Logo">
+            </div>
+            <div class="club-name">Núcleo SCP<br>Castelo Branco</div>
+        </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item active" onclick="switchView('jogadoras')">⚽ Jogadoras</li>
-            <li class="sidebar-item" onclick="switchView('treinadores')">📋 Treinadores / Staff</li>
-            <li class="sidebar-item" onclick="switchView('vinculos')">📅 Vínculos de Época</li>
-            <li class="sidebar-item" onclick="switchView('estatisticas')">📊 Estatísticas</li>
+            <li class="sidebar-item active" onclick="switchView('ativas')"><span class="sidebar-icon">&#128095;</span> Atletas Ativas</li>
+            <li class="sidebar-item" onclick="switchView('inativas')"><span class="sidebar-icon">&#128683;</span> Atletas Inativas</li>
+            <li class="sidebar-item" onclick="switchView('treinadores')"><span class="sidebar-icon">&#128100;</span> Treinadores / Staff</li>
+            <li class="sidebar-item" onclick="switchView('vinculos')"><span class="sidebar-icon">&#128197;</span> Vínculos de Época</li>
+            <li class="sidebar-item" onclick="switchView('estatisticas')"><span class="sidebar-icon">&#128200;</span> Estatísticas</li>
         </ul>
     </nav>
 
     <main class="main-content">
 
-        <section id="section-jogadoras" class="view-section active">
-            <h1>Gestão de Jogadoras</h1>
+        <section id="section-ativas" class="view-section active">
+            <h1>Gestão de Atletas Ativas</h1>
             <div class="card">
-                <h2>Adicionar Jogadora</h2>
+                <h2>Adicionar Nova Atleta</h2>
                 <form id="formJogadora" class="form-row">
                     <div class="form-group"><label>Nome Desportivo</label><input type="text" id="j_nome_desp" required></div>
                     <div class="form-group"><label>Nome Completo</label><input type="text" id="j_nome_comp" required></div>
@@ -105,15 +122,31 @@
                     </div>
                     <div class="form-group"><label>Escalão Etário</label><input type="text" id="j_escalao"></div>
                     <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
-                    <button type="submit">Adicionar Atleta</button>
+                    <div class="form-group"><label>Jogos Iniciais</label><input type="number" id="j_jogos" value="0"></div>
+                    <div class="form-group"><label>Golos Iniciais</label><input type="number" id="j_golos" value="0"></div>
+                    <div class="form-group"><label>G. Sofridos Iniciais</label><input type="number" id="j_sofridos" value="0 font"></div>
+                    <button type="submit">Gravar Atleta</button>
                 </form>
             </div>
             
             <div class="card">
-                <h2>Lista de Atletas</h2>
-                <table id="tabelaJogadoras">
+                <h2>Lista de Atletas no Ativo</h2>
+                <table id="tabelaAtivas">
                     <thead>
-                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Nº</th><th>Jogos</th><th>Golos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
+                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Nº</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="section-inativas" class="view-section">
+            <h1>Arquivo de Atletas Inativas</h1>
+            <div class="card">
+                <h2>Lista de Atletas Inativas</h2>
+                <table id="tabelaInativas">
+                    <thead>
+                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Nº</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -204,12 +237,14 @@
         <div class="modal-content">
             <h3>Editar Atleta</h3>
             <input type="hidden" id="ej_id">
+            <input type="hidden" id="ej_view_origem">
             <div class="form-group"><label>Nome Desportivo</label><input type="text" id="ej_nome_desp"></div>
             <div class="form-group"><label>Nome Completo</label><input type="text" id="ej_nome_comp"></div>
             <div class="form-group"><label>Data Nascimento</label><input type="date" id="ej_data_nasc"></div>
             <div class="form-group"><label>Escalão Etário</label><input type="text" id="ej_escalao"></div>
             <div class="form-group"><label>Jogos</label><input type="number" id="ej_jogos"></div>
             <div class="form-group"><label>Golos</label><input type="number" id="ej_golos"></div>
+            <div class="form-group"><label>Golos Sofridos</label><input type="number" id="ej_sofridos"></div>
             <div class="form-group"><label>Assistências</label><input type="number" id="ej_assist"></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
@@ -219,22 +254,22 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO CORRIGIDA DO CLIENTE ---
         const URL_SUPABASE = 'https://lwehgnistggtekqbshur.supabase.co'; 
         const KEY_SUPABASE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; 
-        
-        // Mudança de nome da variável para não chocar com o objeto global da biblioteca
         const dbClient = window.supabase ? window.supabase.createClient(URL_SUPABASE, KEY_SUPABASE) : null;
 
-        // --- CONTROLO DE NAVEGAÇÃO ---
+        let visaoAtual = 'ativas';
+
         function switchView(viewName) {
+            visaoAtual = viewName;
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
             
             document.getElementById(`section-${viewName}`).classList.add('active');
             event.currentTarget.classList.add('active');
             
-            if(viewName === 'jogadoras') carregarJogadoras();
+            if(viewName === 'ativas') carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+            if(viewName === 'inativas') carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
             if(viewName === 'treinadores') carregarTreinadores();
             if(viewName === 'vinculos') { carregarVinculos(); atualizarSelectParticipantes(); }
             if(viewName === 'estatisticas') calcularEstatisticas();
@@ -252,73 +287,92 @@
             return idade;
         }
 
-        // --- CONVERTER STRING JOGADORA PARA HTML SEGURO ---
-        function obterAtletaId(idStr) { return idStr; }
+        // Deixa as iniciais da posição em maiúscula
+        function formatarPosicao(pos) {
+            if (!pos) return '-';
+            return pos.split(' ').map(palavra => palavra.charAt(0).toUpperCase() + palabra.slice(1)).join(' ');
+        }
 
-        // --- MÓDULO JOGADORAS ---
-        async function carregarJogadoras() {
+        // --- CARREGAR JOGADORAS (FILTRADO POR ESTADO PARA AS DUAS TABELAS) ---
+        async function carregarSeccaoJogadoras(apenasAtivas, targetTbodySelector) {
             if(!dbClient) return;
-            const { data, error } = await dbClient.from('jogadoras').select('*').order('nome_desportivo');
-            if (error) { console.error("Erro ao buscar jogadoras:", error); return; }
+            const { data, error } = await dbClient.from('jogadoras').select('*').eq('ativo', apenasAtivas).order('nome_desportivo');
+            if (error) { console.error("Erro ao buscar atletas:", error); return; }
             
-            const tbody = document.querySelector('#tabelaJogadoras tbody');
+            const tbody = document.querySelector(targetTbodySelector);
             tbody.innerHTML = '';
             
             data.forEach(j => {
                 const tr = document.createElement('tr');
                 if(!j.ativo) tr.className = 'inativo-row';
                 
-                // Salvaguarda dados stringificados para evitar falhas no HTML onClick
-                const stringObjeto = btoa(unescape(encodeURIComponent(JSON.stringify(j))));
+                // Serialização Unicode segura para evitar falhas com acentos e cedilhas
+                const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(j)));
 
                 tr.innerHTML = `
                     <td><strong>${j.nome_desportivo}</strong><br><small style="color:#777">${j.nome_completo}</small></td>
-                    <td>${j.posicao || '-'}</td>
+                    <td>${formatarPosicao(j.posicao)}</td>
                     <td>${j.escalao_etario || '-'}</td>
                     <td>${j.numero_preferido || '-'}</td>
-                    <td>${j.jogos_clube || 0}</td><td>${j.golos_clube || 0}</td><td>${j.assistencias_clube || 0}</td>
+                    <td>${j.jogos_clube || 0}</td>
+                    <td>${j.golos_clube || 0}</td>
+                    <td>${j.golos_sofridos || 0}</td>
+                    <td>${j.assistencias_clube || 0}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
-                        <button class="btn-action btn-edit" onclick="abrirModalJogadora('${stringObjeto}')">Editar</button>
-                        <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button class="btn-action btn-delete" onclick="eliminarRegisto('jogadoras', ${j.id_jogadora}, carregarJogadoras)">X</button>
+                        <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
+                        <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // Criar Atleta com Jogos e Golos iniciais
         document.getElementById('formJogadora').addEventListener('submit', async (e) => {
             e.preventDefault();
             const num = document.getElementById('j_numero').value;
+            const jg = document.getElementById('j_jogos').value;
+            const gl = document.getElementById('j_golos').value;
+            const sf = document.getElementById('j_sofridos').value;
+
             const nova = {
                 nome_desportivo: document.getElementById('j_nome_desp').value,
                 nome_completo: document.getElementById('j_nome_comp').value,
                 data_nascimento: document.getElementById('j_data_nasc').value,
                 posicao: document.getElementById('j_posicao').value || null,
                 escalao_etario: document.getElementById('j_escalao').value || null,
-                numero_preferido: num ? parseInt(num) : null
+                numero_preferido: num ? parseInt(num) : null,
+                jogos_clube: jg ? parseInt(jg) : 0,
+                golos_clube: gl ? parseInt(gl) : 0,
+                golos_sofridos: sf ? parseInt(sf) : 0
             };
+
             await dbClient.from('jogadoras').insert([nova]);
             document.getElementById('formJogadora').reset();
-            carregarJogadoras();
+            carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
         });
 
-        function abrirModalJogadora(base64Data) {
-            const j = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
+        function abrirModalJogadora(base64, origem) {
+            const j = JSON.parse(decodeURIComponent(atob(base64)));
             document.getElementById('modalEditarJogadora').style.display = 'block';
             document.getElementById('ej_id').value = j.id_jogadora;
+            document.getElementById('ej_view_origem').value = origem;
             document.getElementById('ej_nome_desp').value = j.nome_desportivo;
             document.getElementById('ej_nome_comp').value = j.nome_completo;
             document.getElementById('ej_data_nasc').value = j.data_nascimento;
             document.getElementById('ej_escalao').value = j.escalao_etario || '';
             document.getElementById('ej_jogos').value = j.jogos_clube || 0;
             document.getElementById('ej_golos').value = j.golos_clube || 0;
+            document.getElementById('ej_sofridos').value = j.golos_sofridos || 0;
             document.getElementById('ej_assist').value = j.assistencias_clube || 0;
         }
 
         async function salvarEdicaoJogadora() {
             const id = document.getElementById('ej_id').value;
+            const origem = document.getElementById('ej_view_origem').value;
+
             await dbClient.from('jogadoras').update({
                 nome_desportivo: document.getElementById('ej_nome_desp').value,
                 nome_completo: document.getElementById('ej_nome_comp').value,
@@ -326,24 +380,34 @@
                 escalao_etario: document.getElementById('ej_escalao').value || null,
                 jogos_clube: parseInt(document.getElementById('ej_jogos').value) || 0,
                 golos_clube: parseInt(document.getElementById('ej_golos').value) || 0,
+                golos_sofridos: parseInt(document.getElementById('ej_sofridos').value) || 0,
                 assistencias_clube: parseInt(document.getElementById('ej_assist').value) || 0
             }).eq('id_jogadora', id);
+            
             fecharModais();
-            carregarJogadoras();
+            if(origem === 'ativas') carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+            else carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
         }
 
-        async function mudarEstadoJogadora(id, est) {
+        async function mudarEstadoJogadora(id, est, eraAtiva) {
             await dbClient.from('jogadoras').update({ ativo: !est }).eq('id_jogadora', id);
-            carregarJogadoras();
+            if(eraAtiva) carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+            else carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
         }
 
-        // --- MÓDULO TREINADORES ---
+        async function eliminarJogadora(id, eraAtiva, selector) {
+            if(confirm('Remover esta atleta permanentemente da base de dados?')) {
+                await dbClient.from('jogadoras').delete().eq('id_jogadora', id);
+                carregarSeccaoJogadoras(eraAtiva, selector);
+            }
+        }
+
+        // --- STAFF & TREINADORES ---
         async function carregarTreinadores() {
-            const { data, error } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
-            if (error) return;
+            const { data } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
             const tbody = document.querySelector('#tabelaTreinadores tbody');
             tbody.innerHTML = '';
-            data.forEach(t => {
+            data?.forEach(t => {
                 const tr = document.createElement('tr');
                 if(!t.ativo) tr.className = 'inativo-row';
                 tr.innerHTML = `
@@ -351,7 +415,7 @@
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
                         <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button class="btn-action btn-delete" onclick="eliminarRegisto('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
+                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -376,7 +440,7 @@
             carregarTreinadores();
         }
 
-        // --- MÓDULO VÍNCULOS ---
+        // --- VÍNCULOS ---
         async function atualizarSelectParticipantes() {
             const tipo = document.getElementById('v_tipo').value;
             const select = document.getElementById('v_participante');
@@ -423,23 +487,22 @@
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${nome}</strong></td><td>${tipo}</td><td>${v.epoca}</td><td>${v.escalao_equipa}</td><td>${v.funcao_treinador || '-'}</td>
-                        <td><button class="btn-action btn-delete" onclick="eliminarRegisto('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button></td>
+                        <td><button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button></td>
                     </tr>
                 `;
             });
         }
 
-        // --- REMOVER REGISTOS ---
-        async function eliminarRegisto(tabela, id, callback) {
-            if(confirm('Remover este registo permanentemente?')) {
-                const pk = tabela === 'jogadoras' ? 'id_jogadora' : (tabela === 'treinadores' ? 'id_treinador' : 'id_vinculo');
+        async function eliminarRegistoGenerico(tabela, id, callback) {
+            if(confirm('Eliminar este registo permanentemente?')) {
+                const pk = tabela === 'treinadores' ? 'id_treinador' : 'id_vinculo';
                 await dbClient.from(tabela).delete().eq(pk, id);
                 callback();
             }
         }
 
-        // --- SISTEMA INTELIGENTE DE ESTATÍSTICAS ---
-        async function calcularEstatisticas() {
+        // --- CÁLCULO DE ESTATÍSTICAS ---
+        async function calcularEstatistics() {
             const { data: atletas } = await dbClient.from('jogadoras').select('*');
             if(!atletas || atletas.length === 0) return;
 
@@ -471,8 +534,7 @@
             document.getElementById('st_assist').innerHTML = `${liderAssist.nome}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
         }
 
-        // Início
-        window.onload = () => { carregarJogadoras(); };
+        window.onload = () => { carregarSeccaoJogadoras(true, '#tabelaAtivas tbody'); };
     </script>
 </body>
 </html>
