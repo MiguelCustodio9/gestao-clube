@@ -470,7 +470,7 @@
             await dbClient.from('jogadoras').insert([nova]);
             document.getElementById('formJogadora').reset();
             carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
-        }
+        });
 
         function verJogadora(base64) {
             const j = JSON.parse(decodeURIComponent(atob(base64)));
@@ -691,7 +691,7 @@
             document.getElementById('st_assist').innerHTML = `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
         }
 
-        window.onload = () => { switchView('ativas', document.getElementById('nav-ativas')); };
+        window.onload = () => { switchView('ativas', document.querySelector('.view-tab.active')); };
     </script>
 </body>
 </html>
