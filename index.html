@@ -109,7 +109,7 @@
                     <div class="form-group"><label>Nome Desportivo</label><input type="text" id="j_nome_desp" required></div>
                     <div class="form-group"><label>Nome Completo</label><input type="text" id="j_nome_comp" required></div>
                     <div class="form-group"><label>Data Nascimento</label><input type="date" id="j_data_nasc" required></div>
-                    <div class="form-group"><label>Nacionalidade</label><input type="text" id="j_nacionalidade" value="Portuguesa"></div>
+                    <div class="form-group"><label>Nacionalidade</label><input type="text" id="j_nacionalidade"></div>
                     <div class="form-group">
                         <label>Posição</label>
                         <select id="j_posicao">
@@ -145,6 +145,24 @@
             
             <div class="card">
                 <h2>Lista de Atletas no Ativo</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;min-width:220px;">
+                        <label>Pesquisar</label>
+                        <input type="text" id="filtroAtivas" placeholder="Filtrar atletas..." oninput="atualizarTabelaAtletas('ativas')">
+                    </div>
+                    <div class="form-group">
+                        <label>Ordenar por</label>
+                        <select id="ordenarAtivas" onchange="atualizarTabelaAtletas('ativas')">
+                            <option value="nome_desportivo">Nome</option>
+                            <option value="posicao">Posição</option>
+                            <option value="escalao_etario">Escalão</option>
+                            <option value="data_nascimento">Data de Nasc.</option>
+                            <option value="jogos_clube">Jogos</option>
+                            <option value="golos_clube">Golos</option>
+                            <option value="golos_sofridos">G. Sofridos</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="tabelaAtivas">
                     <thead>
                         <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Data Nasc</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
@@ -157,6 +175,24 @@
         <section id="section-inativas" class="view-section">
             <div class="card">
                 <h2>Lista de Atletas Inativas</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;min-width:220px;">
+                        <label>Pesquisar</label>
+                        <input type="text" id="filtroInativas" placeholder="Filtrar atletas..." oninput="atualizarTabelaAtletas('inativas')">
+                    </div>
+                    <div class="form-group">
+                        <label>Ordenar por</label>
+                        <select id="ordenarInativas" onchange="atualizarTabelaAtletas('inativas')">
+                            <option value="nome_desportivo">Nome</option>
+                            <option value="posicao">Posição</option>
+                            <option value="escalao_etario">Escalão</option>
+                            <option value="data_nascimento">Data de Nasc.</option>
+                            <option value="jogos_clube">Jogos</option>
+                            <option value="golos_clube">Golos</option>
+                            <option value="golos_sofridos">G. Sofridos</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="tabelaInativas">
                     <thead>
                         <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Data Nasc</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
@@ -182,6 +218,22 @@
             </div>
             <div class="card">
                 <h2>Lista de Staff Técnico</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;min-width:220px;">
+                        <label>Pesquisar</label>
+                        <input type="text" id="filtroTreinadores" placeholder="Filtrar treinadores..." oninput="atualizarTabelaTreinadores()">
+                    </div>
+                    <div class="form-group">
+                        <label>Ordenar por</label>
+                        <select id="ordenarTreinadores" onchange="atualizarTabelaTreinadores()">
+                            <option value="nome_desportivo">Nome Desportivo</option>
+                            <option value="nome_completo">Nome Completo</option>
+                            <option value="data_nascimento">Data de Nasc.</option>
+                            <option value="nacionalidade">Nacionalidade</option>
+                            <option value="primeira_epoca">Primeira Época</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="tabelaTreinadores">
                     <thead>
                         <tr>
@@ -230,6 +282,21 @@
             </div>
             <div class="card">
                 <h2>Histórico de Vínculos</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1;min-width:220px;">
+                        <label>Pesquisar</label>
+                        <input type="text" id="filtroVinculos" placeholder="Filtrar vínculos..." oninput="atualizarTabelaVinculos()">
+                    </div>
+                    <div class="form-group">
+                        <label>Ordenar por</label>
+                        <select id="ordenarVinculos" onchange="atualizarTabelaVinculos()">
+                            <option value="nome">Nome</option>
+                            <option value="tipo">Tipo</option>
+                            <option value="epoca">Época</option>
+                            <option value="escalao_equipa">Escalão</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="tabelaVinculos">
                     <thead>
                         <tr><th>Nome</th><th>Tipo</th><th>Época</th><th>Escalão Equipa</th><th>Função Técnico</th><th>Ações</th></tr>
@@ -346,6 +413,37 @@
         const dbClient = window.supabase ? window.supabase.createClient(URL_SUPABASE, KEY_SUPABASE) : null;
 
         let visaoAtual = 'ativas';
+        const estado = {
+            atletasAtivas: [],
+            atletasInativas: [],
+            treinadores: [],
+            vinculos: []
+        };
+
+        function ordenarDados(a, b, campo) {
+            const valorA = a[campo] ?? '';
+            const valorB = b[campo] ?? '';
+            const camposNumericos = ['jogos_clube', 'golos_clube', 'golos_sofridos', 'assistencias_clube'];
+            if (camposNumericos.includes(campo)) {
+                return (parseInt(valorA, 10) || 0) - (parseInt(valorB, 10) || 0);
+            }
+            if (campo === 'data_nascimento') {
+                return new Date(valorA) - new Date(valorB);
+            }
+            return String(valorA).toLowerCase().localeCompare(String(valorB).toLowerCase());
+        }
+
+        function filtrarESortear(data, termo, campoOrdenacao) {
+            if (!data) return [];
+            const texto = (termo || '').toLowerCase();
+            let resultado = data.filter(item => {
+                return Object.values(item).some(valor => String(valor || '').toLowerCase().includes(texto));
+            });
+            if (campoOrdenacao) {
+                resultado = resultado.slice().sort((a, b) => ordenarDados(a, b, campoOrdenacao));
+            }
+            return resultado;
+        }
 
         function switchView(viewName, el) {
             visaoAtual = viewName;
@@ -411,10 +509,23 @@
             const { data, error } = await dbClient.from('jogadoras').select('*').eq('ativo', apenasAtivas).order('nome_desportivo');
             if (error) { console.error("Erro ao buscar atletas:", error); return; }
             
-            const tbody = document.querySelector(targetTbodySelector);
-            tbody.innerHTML = '';
+            if (apenasAtivas) estado.atletasAtivas = data || [];
+            else estado.atletasInativas = data || [];
             
-            data.forEach(j => {
+            const tbody = document.querySelector(targetTbodySelector);
+            renderTabelaAtletas(tbody, apenasAtivas ? estado.atletasAtivas : estado.atletasInativas, apenasAtivas);
+        }
+
+        function renderTabelaAtletas(tbody, data, apenasAtivas) {
+            const filtro = document.getElementById(apenasAtivas ? 'filtroAtivas' : 'filtroInativas')?.value || '';
+            const ordenacao = document.getElementById(apenasAtivas ? 'ordenarAtivas' : 'ordenarInativas')?.value || 'nome_desportivo';
+            const exibicao = filtrarESortear(data, filtro, ordenacao);
+            tbody.innerHTML = '';
+            if (!exibicao.length) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
+                return;
+            }
+            exibicao.forEach(j => {
                 const tr = document.createElement('tr');
                 if(!j.ativo) tr.className = 'inativo-row';
                 
@@ -439,6 +550,101 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function atualizarTabelaAtletas(view) {
+            const dados = view === 'ativas' ? estado.atletasAtivas : estado.atletasInativas;
+            const selector = view === 'ativas' ? '#tabelaAtivas tbody' : '#tabelaInativas tbody';
+            renderTabelaAtletas(document.querySelector(selector), dados, view === 'ativas');
+        }
+
+        async function carregarTreinadores() {
+            if(!dbClient) return;
+            const { data, error } = await dbClient.from('treinadores').select('*');
+            if (error) { console.error('Erro ao buscar treinadores:', error); return; }
+            estado.treinadores = data || [];
+            renderTabelaTreinadores();
+        }
+
+        function renderTabelaTreinadores() {
+            const filtro = document.getElementById('filtroTreinadores')?.value || '';
+            const ordenacao = document.getElementById('ordenarTreinadores')?.value || 'nome_desportivo';
+            const exibicao = filtrarESortear(estado.treinadores, filtro, ordenacao);
+            const tbody = document.querySelector('#tabelaTreinadores tbody');
+            tbody.innerHTML = '';
+            if (!exibicao.length) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
+                return;
+            }
+            exibicao.forEach(t => {
+                const tr = document.createElement('tr');
+                if(!t.ativo) tr.className = 'inativo-row';
+                const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(t)));
+                tr.innerHTML = `
+                    <td><strong>${t.nome_desportivo}</strong></td>
+                    <td>${t.nome_completo}</td>
+                    <td>${formatarData(t.data_nascimento)}</td>
+                    <td>${t.nacionalidade || '-'}</td>
+                    <td>${t.clube_anterior || '-'}</td>
+                    <td>${t.primeira_epoca || '-'}</td>
+                    <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
+                    <td>
+                        <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
+                        <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function atualizarTabelaTreinadores() {
+            renderTabelaTreinadores();
+        }
+
+        async function carregarVinculos() {
+            if(!dbClient) return;
+            const { data } = await dbClient.from('vinculo_epocas').select(`
+                id_vinculo, epoca, escalao_equipa, funcao_treinador,
+                jogadoras(nome_desportivo), treinadores(nome_desportivo)
+            `);
+            estado.vinculos = (data || []).map(v => ({
+                id_vinculo: v.id_vinculo,
+                nome: v.jogadoras ? v.jogadoras.nome_desportivo : (v.treinadores ? v.treinadores.nome_desportivo : 'Desconhecido'),
+                tipo: v.jogadoras ? 'Jogadora' : 'Staff Técnico',
+                epoca: v.epoca,
+                escalao_equipa: v.escalao_equipa,
+                funcao_treinador: v.funcao_treinador
+            }));
+            renderTabelaVinculos();
+        }
+
+        function renderTabelaVinculos() {
+            const filtro = document.getElementById('filtroVinculos')?.value || '';
+            const ordenacao = document.getElementById('ordenarVinculos')?.value || 'nome';
+            const exibicao = filtrarESortear(estado.vinculos, filtro, ordenacao);
+            const tbody = document.querySelector('#tabelaVinculos tbody');
+            tbody.innerHTML = '';
+            if (!exibicao.length) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
+                return;
+            }
+            exibicao.forEach(v => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${v.nome}</strong></td>
+                        <td>${v.tipo}</td>
+                        <td>${v.epoca}</td>
+                        <td>${v.escalao_equipa}</td>
+                        <td>${v.funcao_treinador || '-'}</td>
+                        <td><button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function atualizarTabelaVinculos() {
+            renderTabelaVinculos();
         }
 
         // Criar Atleta
@@ -545,37 +751,6 @@
         }
 
         // --- STAFF & TREINADORES ---
-        async function carregarTreinadores() {
-            const { data, error } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
-            if (error) { console.error('Erro ao buscar treinadores:', error); return; }
-            const tbody = document.querySelector('#tabelaTreinadores tbody');
-            tbody.innerHTML = '';
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">Nenhum treinador encontrado.</td></tr>`;
-                return;
-            }
-            data.forEach(t => {
-                const tr = document.createElement('tr');
-                if(!t.ativo) tr.className = 'inativo-row';
-                const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(t)));
-                tr.innerHTML = `
-                    <td><strong>${t.nome_desportivo}</strong></td>
-                    <td>${t.nome_completo}</td>
-                    <td>${formatarData(t.data_nascimento)}</td>
-                    <td>${t.nacionalidade || '-'}</td>
-                    <td>${t.clube_anterior || '-'}</td>
-                    <td>${t.primeira_epoca || '-'}</td>
-                    <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
-                    <td>
-                        <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
-                        <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
-                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
         document.getElementById('formTreinador').addEventListener('submit', async (e) => {
             e.preventDefault();
             const novo = {
@@ -631,25 +806,6 @@
             document.getElementById('formVinculo').reset();
             carregarVinculos();
         });
-
-        async function carregarVinculos() {
-            const { data } = await dbClient.from('vinculo_epocas').select(`
-                id_vinculo, epoca, escalao_equipa, funcao_treinador,
-                jogadoras(nome_desportivo), treinadores(nome_desportivo)
-            `);
-            const tbody = document.querySelector('#tabelaVinculos tbody');
-            tbody.innerHTML = '';
-            data?.forEach(v => {
-                const nome = v.jogadoras ? v.jogadoras.nome_desportivo : (v.treinadores ? v.treinadores.nome_desportivo : 'Desconhecido');
-                const tipo = v.jogadoras ? 'Jogadora' : 'Staff Técnico';
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${nome}</strong></td><td>${tipo}</td><td>${v.epoca}</td><td>${v.escalao_equipa}</td><td>${v.funcao_treinador || '-'}</td>
-                        <td><button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button></td>
-                    </tr>
-                `;
-            });
-        }
 
         async function eliminarRegistoGenerico(tabela, id, callback) {
             if(confirm('Eliminar este registo permanentemente?')) {
