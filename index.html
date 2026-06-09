@@ -22,7 +22,10 @@
         
         /* Área de Conteúdo */
         .main-content { flex-grow: 1; padding: 34px 36px 48px; overflow-y: auto; position: relative; background: linear-gradient(180deg, rgba(245,248,247,1) 0%, rgba(237,244,242,1) 100%); }
-        .topbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin-bottom: 28px; padding: 22px 24px; background: rgba(255,255,255,0.72); border-radius: 24px; box-shadow: 0 18px 50px rgba(15,48,37,0.06); backdrop-filter: blur(10px); }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 28px; padding: 20px 24px; background: rgba(255,255,255,0.8); border-radius: 24px; box-shadow: 0 18px 50px rgba(15,48,37,0.06); backdrop-filter: blur(10px); }
+        .topbar-brand { display: flex; align-items: center; gap: 14px; }
+        .topbar-logo { width: 52px; height: 52px; border-radius: 18px; overflow: hidden; border: 2px solid rgba(0, 90, 67, 0.18); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .topbar-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .topbar-title { margin: 0; font-size: 24px; font-weight: 800; color: #0b4d33; }
         .topbar-subtitle { margin: 0; color: #5f7a6f; font-size: 14px; }
         .topbar-actions { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -81,9 +84,14 @@
 
     <main class="main-content">
         <div class="topbar">
-            <div>
-                <p class="topbar-subtitle">Painel de Gestão</p>
-                <h1 id="topbar-title" class="topbar-title">Atletas Ativas</h1>
+            <div class="topbar-brand">
+                <div class="topbar-logo">
+                    <img src="logo.png" alt="SGC Logo">
+                </div>
+                <div>
+                    <p class="topbar-subtitle">Painel de Gestão</p>
+                    <h1 id="topbar-title" class="topbar-title">Atletas Ativas</h1>
+                </div>
             </div>
             <div class="topbar-actions">
                 <button class="btn btn-secondary view-tab active" onclick="switchView('ativas', this)">Ativas</button>
@@ -125,12 +133,12 @@
                     </div>
                     <div class="form-group"><label>Escalão</label><input type="text" id="j_escalao"></div>
                     <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
-                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="j_clube_anterior" placeholder="Ex: ADR Retaxo"></div>
-                    <div class="form-group"><label>Primeira Época</label><input type="text" id="j_primeira_epoca" placeholder="Ex: 2025/2026"></div>
+                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="j_clube_anterior"></div>
+                    <div class="form-group"><label>Primeira Época</label><input type="text" id="j_primeira_epoca"></div>
                     <div class="form-group"><label>Jogos</label><input type="number" id="j_jogos" value="0"></div>
                     <div class="form-group"><label>Golos</label><input type="number" id="j_golos" value="0"></div>
                     <div class="form-group"><label>G. Sofridos</label><input type="number" id="j_sofridos" value="0"></div>
-                    <div class="form-group"><label>Ativa</label><input type="checkbox" id="j_ativo" checked></div>
+                    <input type="hidden" id="j_ativo" value="true">
                     <button type="submit">Adicionar Atleta</button>
                 </form>
             </div>
@@ -166,9 +174,9 @@
                     <div class="form-group"><label>Nome Completo</label><input type="text" id="t_nome_comp" required></div>
                     <div class="form-group"><label>Data Nascimento</label><input type="date" id="t_data_nasc" required></div>
                     <div class="form-group"><label>Nacionalidade</label><input type="text" id="t_nacionalidade" value="Portuguesa"></div>
-                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="t_clube_anterior" placeholder="Ex: ADR Retaxo"></div>
-                    <div class="form-group"><label>Primeira Época</label><input type="text" id="t_primeira_epoca" placeholder="Ex: 2025/2026"></div>
-                    <div class="form-group"><label>Ativo</label><input type="checkbox" id="t_ativo" checked></div>
+                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="t_clube_anterior"></div>
+                    <div class="form-group"><label>Primeira Época</label><input type="text" id="t_primeira_epoca"></div>
+                    <input type="hidden" id="t_ativo" value="true">
                     <button type="submit">Adicionar Treinador</button>
                 </form>
             </div>
@@ -204,8 +212,8 @@
                         </select>
                     </div>
                     <div class="form-group"><label>Participante</label><select id="v_participante" required></select></div>
-                    <div class="form-group"><label>Época</label><input type="text" id="v_epoca" placeholder="Ex: 2025/2026" required></div>
-                    <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="v_escalao" placeholder="Ex: Seniores" required></div>
+                    <div class="form-group"><label>Época</label><input type="text" id="v_epoca" required></div>
+                    <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="v_escalao" required></div>
                     <div class="form-group">
                         <label>Função (Apenas Staff)</label>
                         <select id="v_funcao">
@@ -382,7 +390,14 @@
         // CORRIGIDO: alterado "palabra" para "palavra" para resolver o crash da consola!
         function formatarPosicao(pos) {
             if (!pos) return '-';
-            return pos.split(' ').map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1)).join(' ');
+            const capitalizar = texto => texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+            return pos
+                .split(' ')
+                .map(palavra => palavra
+                    .split('/')
+                    .map(parte => capitalizar(parte))
+                    .join('/'))
+                .join(' ');
         }
 
         function formatarData(data) {
@@ -451,22 +466,7 @@
                 golos_clube: gl ? parseInt(gl) : 0,
                 golos_sofridos: sf ? parseInt(sf) : 0,
                 assistencias_clube: 0,
-                ativo: document.getElementById('j_ativo').checked
-            };
-
-            await dbClient.from('jogadoras').insert([nova]);
-            document.getElementById('formJogadora').reset();
-            carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
-        });
-
-        function abrirModalJogadora(base64, origem) {
-            const j = JSON.parse(decodeURIComponent(atob(base64)));
-            document.getElementById('modalEditarJogadora').style.display = 'block';
-            document.getElementById('ej_id').value = j.id_jogadora;
-            document.getElementById('ej_view_origem').value = origem;
-            document.getElementById('ej_nome_desp').value = j.nome_desportivo;
-            document.getElementById('ej_nome_comp').value = j.nome_completo;
-            document.getElementById('ej_data_nasc').value = j.data_nascimento;
+                    ativo: true
             document.getElementById('ej_nacionalidade').value = j.nacionalidade || '';
             document.getElementById('ej_posicao').value = j.posicao || '';
             document.getElementById('ej_pe_preferencial').value = j.pe_preferencial || '';
@@ -590,7 +590,7 @@
                 nacionalidade: document.getElementById('t_nacionalidade').value || null,
                 clube_anterior: document.getElementById('t_clube_anterior').value || null,
                 primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
-                ativo: document.getElementById('t_ativo').checked
+                ativo: true
             };
             await dbClient.from('treinadores').insert([novo]);
             document.getElementById('formTreinador').reset();
