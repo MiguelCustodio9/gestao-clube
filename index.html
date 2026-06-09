@@ -112,13 +112,13 @@
 
     // --- FUNÇÃO PARA CARREGAR E FILTRAR DADOS ---
     async function carregarJogadoras() {
-        if (!supabase) return;
+        if (!clientSupabase) return;
 
         const nomeFiltro = document.getElementById('filtroNome').value;
         const ordenarPor = document.getElementById('ordenarPor').value;
 
         // Inicia a query na tabela do Supabase
-        let query = supabase.from('jogadoras').select('*');
+        let query = clientSupabase.from('jogadoras').select('*');
 
         // Aplica filtro por nome se estiver preenchido
         if (nomeFiltro) {
@@ -170,7 +170,7 @@
             numero_preferido: numero === "" ? null : parseInt(numero) // Converte string vazia para NULL real
         };
 
-        const { error } = await supabase.from('jogadoras').insert([novaJogadora]);
+        const { error } = await clientSupabase.from('jogadoras').insert([novaJogadora]);
 
         if (error) {
             alert('Erro ao guardar na base de dados: ' + error.message);
