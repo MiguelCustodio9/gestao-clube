@@ -559,11 +559,14 @@
         }
 
         async function carregarTreinadores() {
-            if(!dbClient) return;
+            console.debug('carregarTreinadores chamado, dbClient?', !!dbClient);
+            if(!dbClient) { console.error('carregarTreinadores: dbClient não inicializado'); return; }
             const { data, error } = await dbClient.from('treinadores').select('*');
+            console.debug('carregarTreinadores resposta', { data, error });
             if (error) { console.error('Erro ao buscar treinadores:', error); return; }
             estado.treinadores = data || [];
             renderTabelaTreinadores();
+            console.debug('treinadores carregados:', estado.treinadores.length);
         }
 
         function renderTabelaTreinadores() {
@@ -571,6 +574,7 @@
             const ordenacao = document.getElementById('ordenarTreinadores')?.value || 'nome_desportivo';
             const exibicao = filtrarESortear(estado.treinadores, filtro, ordenacao);
             const tbody = document.querySelector('#tabelaTreinadores tbody');
+            if (!tbody) { console.error('renderTabelaTreinadores: elemento tbody #tabelaTreinadores não encontrado'); return; }
             tbody.innerHTML = '';
             if (!exibicao.length) {
                 tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
@@ -603,11 +607,14 @@
         }
 
         async function carregarVinculos() {
-            if(!dbClient) return;
-            const { data } = await dbClient.from('vinculo_epocas').select(`
+            console.debug('carregarVinculos chamado, dbClient?', !!dbClient);
+            if(!dbClient) { console.error('carregarVinculos: dbClient não inicializado'); return; }
+            const { data, error } = await dbClient.from('vinculo_epocas').select(`
                 id_vinculo, epoca, escalao_equipa, funcao_treinador,
                 jogadoras(nome_desportivo), treinadores(nome_desportivo)
             `);
+            console.debug('carregarVinculos resposta', { data, error });
+            if (error) { console.error('Erro ao buscar vínculos:', error); return; }
             estado.vinculos = (data || []).map(v => ({
                 id_vinculo: v.id_vinculo,
                 nome: v.jogadoras ? v.jogadoras.nome_desportivo : (v.treinadores ? v.treinadores.nome_desportivo : 'Desconhecido'),
@@ -617,6 +624,7 @@
                 funcao_treinador: v.funcao_treinador
             }));
             renderTabelaVinculos();
+            console.debug('vínculos carregados:', estado.vinculos.length);
         }
 
         function renderTabelaVinculos() {
@@ -624,6 +632,7 @@
             const ordenacao = document.getElementById('ordenarVinculos')?.value || 'nome';
             const exibicao = filtrarESortear(estado.vinculos, filtro, ordenacao);
             const tbody = document.querySelector('#tabelaVinculos tbody');
+            if (!tbody) { console.error('renderTabelaVinculos: elemento tbody #tabelaVinculos não encontrado'); return; }
             tbody.innerHTML = '';
             if (!exibicao.length) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
