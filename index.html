@@ -853,8 +853,20 @@
         }
 
         window.onload = () => {
+            console.debug('dbClient available?', !!dbClient);
+            // carregar todas as listas para popular o estado inicial
+            if (dbClient) {
+                carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+                carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
+                carregarTreinadores();
+                carregarVinculos();
+                atualizarSelectParticipantes();
+            } else {
+                console.error('Supabase client não inicializado. Verifique a inclusão do script do supabase e as chaves.');
+            }
+
+            // manter a vista ativa por defeito
             switchView('ativas', document.querySelector('.view-tab.active'));
-            carregarTreinadores();
         };
     </script>
 </body>
