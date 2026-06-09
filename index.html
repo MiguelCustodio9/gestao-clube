@@ -390,14 +390,12 @@
         // CORRIGIDO: alterado "palabra" para "palavra" para resolver o crash da consola!
         function formatarPosicao(pos) {
             if (!pos) return '-';
-            const capitalizar = texto => texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-            return pos
-                .split(' ')
-                .map(palavra => palavra
-                    .split('/')
-                    .map(parte => capitalizar(parte))
-                    .join('/'))
-                .join(' ');
+            return pos.split('/').map(parte => {
+                return parte
+                    .split(' ')
+                    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+                    .join(' ');
+            }).join('/');
         }
 
         function formatarData(data) {
@@ -466,19 +464,12 @@
                 golos_clube: gl ? parseInt(gl) : 0,
                 golos_sofridos: sf ? parseInt(sf) : 0,
                 assistencias_clube: 0,
-                    ativo: true
-            document.getElementById('ej_nacionalidade').value = j.nacionalidade || '';
-            document.getElementById('ej_posicao').value = j.posicao || '';
-            document.getElementById('ej_pe_preferencial').value = j.pe_preferencial || '';
-            document.getElementById('ej_escalao').value = j.escalao_etario || '';
-            document.getElementById('ej_numero').value = j.numero_preferido || '';
-            document.getElementById('ej_clube_anterior').value = j.clube_anterior || '';
-            document.getElementById('ej_primeira_epoca').value = j.primeira_epoca || '';
-            document.getElementById('ej_jogos').value = j.jogos_clube || 0;
-            document.getElementById('ej_golos').value = j.golos_clube || 0;
-            document.getElementById('ej_sofridos').value = j.golos_sofridos || 0;
-            document.getElementById('ej_assist').value = j.assistencias_clube || 0;
-            document.getElementById('ej_ativo').checked = Boolean(j.ativo);
+                ativo: true
+            };
+
+            await dbClient.from('jogadoras').insert([nova]);
+            document.getElementById('formJogadora').reset();
+            carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
         }
 
         function verJogadora(base64) {
@@ -488,7 +479,7 @@
             document.getElementById('vj_nome_comp').value = j.nome_completo;
             document.getElementById('vj_data_nasc').value = formatarData(j.data_nascimento);
             document.getElementById('vj_nacionalidade').value = j.nacionalidade || '-';
-            document.getElementById('vj_posicao').value = j.posicao || '-';
+            document.getElementById('vj_posicao').value = formatarPosicao(j.posicao);
             document.getElementById('vj_pe_preferencial').value = j.pe_preferencial || '-';
             document.getElementById('vj_escalao').value = j.escalao_etario || '-';
             document.getElementById('vj_numero').value = j.numero_preferido || '-';
