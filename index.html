@@ -27,7 +27,7 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
         
-        /* Elementos Visuais e Cards */
+        /* Cards e Grelhas */
         h1, h2 { color: var(--primary); margin-top: 0; }
         .card { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 25px; }
         .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
@@ -47,14 +47,14 @@
         table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
         th { background-color: var(--primary); color: var(--white); }
-        tr.inativo-row { background-color: #fafafa; opacity: 0.7; }
+        tr.inativo-row { background-color: #fafafa; opacity: 0.6; }
         
-        /* Badges de Estado Bonitas */
+        /* Badges Ovais Modernas para Estado */
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
         .badge-ativa { background-color: #e6f4ea; color: #137333; }
         .badge-inativa { background-color: #fce8e6; color: #c5221f; }
         
-        /* Botões de Ação */
+        /* Ações */
         .btn-action { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; color: white; }
         .btn-edit { background-color: #ff9800; }
         .btn-status { background-color: #2196f3; }
@@ -103,7 +103,7 @@
                             <option value="universal">Universal</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>Escalão Atual</label><input type="text" id="j_escalao"></div>
+                    <div class="form-group"><label>Escalão Etário</label><input type="text" id="j_escalao"></div>
                     <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
                     <button type="submit">Adicionar Atleta</button>
                 </form>
@@ -207,24 +207,26 @@
             <div class="form-group"><label>Nome Desportivo</label><input type="text" id="ej_nome_desp"></div>
             <div class="form-group"><label>Nome Completo</label><input type="text" id="ej_nome_comp"></div>
             <div class="form-group"><label>Data Nascimento</label><input type="date" id="ej_data_nasc"></div>
-            <div class="form-group"><label>Escalão Atual</label><input type="text" id="ej_escalao"></div>
+            <div class="form-group"><label>Escalão Etário</label><input type="text" id="ej_escalao"></div>
             <div class="form-group"><label>Jogos</label><input type="number" id="ej_jogos"></div>
             <div class="form-group"><label>Golos</label><input type="number" id="ej_golos"></div>
             <div class="form-group"><label>Assistências</label><input type="number" id="ej_assist"></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
-                <button type="button" onclick="salvarEdicaoJogadora()">Salvar</button>
+                <button type="button" onclick="salvarEdicaoJogadora()">Salvar Alterações</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONEXÃO DO SUPABASE ---
-        const SUPABASE_URL = 'https://lwehgnistggtekqbshur.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; 
-        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        // --- CONFIGURAÇÃO CORRIGIDA DO CLIENTE ---
+        const URL_SUPABASE = 'https://lwehgnistggtekqbshur.supabase.co'; 
+        const KEY_SUPABASE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; 
+        
+        // Mudança de nome da variável para não chocar com o objeto global da biblioteca
+        const dbClient = window.supabase ? window.supabase.createClient(URL_SUPABASE, KEY_SUPABASE) : null;
 
-        // --- SISTEMA DE NAVEGAÇÃO DO MENU LATERAL ---
+        // --- CONTROLO DE NAVEGAÇÃO ---
         function switchView(viewName) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
@@ -239,7 +241,9 @@
         }
 
         function fecharModais() { document.getElementById('modalEditarJogadora').style.display = 'none'; }
+        
         function calcularIdade(dataNasc) {
+            if(!dataNasc) return 0;
             const hoje = new Date();
             const nasc = new Date(dataNasc);
             let idade = hoje.getFullYear() - nasc.getFullYear();
@@ -248,25 +252,35 @@
             return idade;
         }
 
+        // --- CONVERTER STRING JOGADORA PARA HTML SEGURO ---
+        function obterAtletaId(idStr) { return idStr; }
+
         // --- MÓDULO JOGADORAS ---
         async function carregarJogadoras() {
-            const { data, error } = await supabase.from('jogadoras').select('*').order('nome_desportivo');
-            if (error) return;
+            if(!dbClient) return;
+            const { data, error } = await dbClient.from('jogadoras').select('*').order('nome_desportivo');
+            if (error) { console.error("Erro ao buscar jogadoras:", error); return; }
+            
             const tbody = document.querySelector('#tabelaJogadoras tbody');
             tbody.innerHTML = '';
+            
             data.forEach(j => {
                 const tr = document.createElement('tr');
                 if(!j.ativo) tr.className = 'inativo-row';
+                
+                // Salvaguarda dados stringificados para evitar falhas no HTML onClick
+                const stringObjeto = btoa(unescape(encodeURIComponent(JSON.stringify(j))));
+
                 tr.innerHTML = `
                     <td><strong>${j.nome_desportivo}</strong><br><small style="color:#777">${j.nome_completo}</small></td>
                     <td>${j.posicao || '-'}</td>
-                    <td>${j.escalao_atual || '-'}</td>
+                    <td>${j.escalao_etario || '-'}</td>
                     <td>${j.numero_preferido || '-'}</td>
-                    <td>${j.jogos_clube}</td><td>${j.golos_clube}</td><td>${j.assistencias_clube}</td>
+                    <td>${j.jogos_clube || 0}</td><td>${j.golos_clube || 0}</td><td>${j.assistencias_clube || 0}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
-                        <button class="btn-action btn-edit" onclick='abrirModalJogadora(${JSON.stringify(j)})'>Editar</button>
-                        <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo})">${j.ativo?'Desativar':'Ativar'}</button>
+                        <button class="btn-action btn-edit" onclick="abrirModalJogadora('${stringObjeto}')">Editar</button>
+                        <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
                         <button class="btn-action btn-delete" onclick="eliminarRegisto('jogadoras', ${j.id_jogadora}, carregarJogadoras)">X</button>
                     </td>
                 `;
@@ -282,33 +296,34 @@
                 nome_completo: document.getElementById('j_nome_comp').value,
                 data_nascimento: document.getElementById('j_data_nasc').value,
                 posicao: document.getElementById('j_posicao').value || null,
-                escalao_atual: document.getElementById('j_escalao').value || null,
+                escalao_etario: document.getElementById('j_escalao').value || null,
                 numero_preferido: num ? parseInt(num) : null
             };
-            await supabase.from('jogadoras').insert([nova]);
+            await dbClient.from('jogadoras').insert([nova]);
             document.getElementById('formJogadora').reset();
             carregarJogadoras();
         });
 
-        function abrirModalJogadora(j) {
+        function abrirModalJogadora(base64Data) {
+            const j = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
             document.getElementById('modalEditarJogadora').style.display = 'block';
             document.getElementById('ej_id').value = j.id_jogadora;
             document.getElementById('ej_nome_desp').value = j.nome_desportivo;
             document.getElementById('ej_nome_comp').value = j.nome_completo;
             document.getElementById('ej_data_nasc').value = j.data_nascimento;
-            document.getElementById('ej_escalao').value = j.escalao_atual || '';
-            document.getElementById('ej_jogos').value = j.jogos_clube;
-            document.getElementById('ej_golos').value = j.golos_clube;
-            document.getElementById('ej_assist').value = j.assistencias_clube;
+            document.getElementById('ej_escalao').value = j.escalao_etario || '';
+            document.getElementById('ej_jogos').value = j.jogos_clube || 0;
+            document.getElementById('ej_golos').value = j.golos_clube || 0;
+            document.getElementById('ej_assist').value = j.assistencias_clube || 0;
         }
 
         async function salvarEdicaoJogadora() {
             const id = document.getElementById('ej_id').value;
-            await supabase.from('jogadoras').update({
+            await dbClient.from('jogadoras').update({
                 nome_desportivo: document.getElementById('ej_nome_desp').value,
                 nome_completo: document.getElementById('ej_nome_comp').value,
                 data_nascimento: document.getElementById('ej_data_nasc').value,
-                escalao_atual: document.getElementById('ej_escalao').value || null,
+                escalao_etario: document.getElementById('ej_escalao').value || null,
                 jogos_clube: parseInt(document.getElementById('ej_jogos').value) || 0,
                 golos_clube: parseInt(document.getElementById('ej_golos').value) || 0,
                 assistencias_clube: parseInt(document.getElementById('ej_assist').value) || 0
@@ -318,13 +333,13 @@
         }
 
         async function mudarEstadoJogadora(id, est) {
-            await supabase.from('jogadoras').update({ ativo: !est }).eq('id_jogadora', id);
+            await dbClient.from('jogadoras').update({ ativo: !est }).eq('id_jogadora', id);
             carregarJogadoras();
         }
 
         // --- MÓDULO TREINADORES ---
         async function carregarTreinadores() {
-            const { data, error } = await supabase.from('treinadores').select('*').order('nome_desportivo');
+            const { data, error } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
             if (error) return;
             const tbody = document.querySelector('#tabelaTreinadores tbody');
             tbody.innerHTML = '';
@@ -335,7 +350,7 @@
                     <td><strong>${t.nome_desportivo}</strong></td><td>${t.nome_completo}</td><td>${t.data_nascimento}</td>
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
-                        <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo?'Desativar':'Ativar'}</button>
+                        <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
                         <button class="btn-action btn-delete" onclick="eliminarRegisto('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                     </td>
                 `;
@@ -351,13 +366,13 @@
                 data_nascimento: document.getElementById('t_data_nasc').value,
                 nacionalidade: document.getElementById('t_nacionalidade').value
             };
-            await supabase.from('treinadores').insert([novo]);
+            await dbClient.from('treinadores').insert([novo]);
             document.getElementById('formTreinador').reset();
             carregarTreinadores();
         });
 
         async function mudarEstadoTreinador(id, est) {
-            await supabase.from('treinadores').update({ ativo: !est }).eq('id_treinador', id);
+            await dbClient.from('treinadores').update({ ativo: !est }).eq('id_treinador', id);
             carregarTreinadores();
         }
 
@@ -368,11 +383,11 @@
             select.innerHTML = '';
             
             if(tipo === 'jogadora') {
-                const { data } = await supabase.from('jogadoras').select('id_jogadora, nome_desportivo').eq('ativo', true);
+                const { data } = await dbClient.from('jogadoras').select('id_jogadora, nome_desportivo').eq('ativo', true);
                 data?.forEach(x => select.innerHTML += `<option value="${x.id_jogadora}">${x.nome_desportivo}</option>`);
                 document.getElementById('v_funcao').disabled = true;
             } else {
-                const { data } = await supabase.from('treinadores').select('id_treinador, nome_desportivo').eq('ativo', true);
+                const { data } = await dbClient.from('treinadores').select('id_treinador, nome_desportivo').eq('ativo', true);
                 data?.forEach(x => select.innerHTML += `<option value="${x.id_treinador}">${x.nome_desportivo}</option>`);
                 document.getElementById('v_funcao').disabled = false;
             }
@@ -390,13 +405,13 @@
                 id_treinador: tipo === 'treinador' ? partId : null,
                 funcao_treinador: tipo === 'treinador' ? document.getElementById('v_funcao').value : null
             };
-            await supabase.from('vinculo_epocas').insert([novoVinculo]);
+            await dbClient.from('vinculo_epocas').insert([novoVinculo]);
             document.getElementById('formVinculo').reset();
             carregarVinculos();
         });
 
         async function carregarVinculos() {
-            const { data } = await supabase.from('vinculo_epocas').select(`
+            const { data } = await dbClient.from('vinculo_epocas').select(`
                 id_vinculo, epoca, escalao_equipa, funcao_treinador,
                 jogadoras(nome_desportivo), treinadores(nome_desportivo)
             `);
@@ -414,18 +429,18 @@
             });
         }
 
-        // --- FUNÇÃO GLOBAL DE ELIMINAÇÃO ---
+        // --- REMOVER REGISTOS ---
         async function eliminarRegisto(tabela, id, callback) {
             if(confirm('Remover este registo permanentemente?')) {
                 const pk = tabela === 'jogadoras' ? 'id_jogadora' : (tabela === 'treinadores' ? 'id_treinador' : 'id_vinculo');
-                await supabase.from(tabela).delete().eq(pk, id);
+                await dbClient.from(tabela).delete().eq(pk, id);
                 callback();
             }
         }
 
         // --- SISTEMA INTELIGENTE DE ESTATÍSTICAS ---
-        async function calcularEstatistics() {
-            const { data: atletas } = await supabase.from('jogadoras').select('*');
+        async function calcularEstatisticas() {
+            const { data: atletas } = await dbClient.from('jogadoras').select('*');
             if(!atletas || atletas.length === 0) return;
 
             const ativas = atletas.filter(x => x.ativo);
@@ -435,7 +450,6 @@
             document.getElementById('st_ativas').innerText = ativas.length;
             document.getElementById('st_inativas').innerText = inativas.length;
 
-            // Idades e Estatísticas Avançadas
             let somaIdades = 0;
             let maisNova = null, maisVelha = null;
             let artilheira = atletas[0], liderAssist = atletas[0];
@@ -444,20 +458,20 @@
                 const idade = calcularIdade(j.data_nascimento);
                 somaIdades += idade;
 
-                if(!maisNova || idade < maisNova.idade) maisNova = { nome: j.nome_desportivo, idade };
+                if(!maisNova || (idade > 0 && idade < maisNova.idade)) maisNova = { nome: j.nome_desportivo, idade };
                 if(!maisVelha || idade > maisVelha.idade) maisVelha = { nome: j.nome_desportivo, idade };
-                if(j.golos_clube > artilheira.golos_clube) artilheira = j;
-                if(j.assistencias_clube > liderAssist.assistencias_clube) liderAssist = j;
+                if((j.golos_clube || 0) > (artilheira.golos_clube || 0)) artilheira = j;
+                if((j.assistencias_clube || 0) > (liderAssist.assistencias_clube || 0)) liderAssist = j;
             });
 
             document.getElementById('st_media_idade').innerText = (somaIdades / atletas.length).toFixed(1) + " anos";
-            document.getElementById('st_mais_nova').innerHTML = `${maisNova.nome}<br><span style="font-size:13px;color:#666">${maisNova.idade} anos</span>`;
-            document.getElementById('st_mais_velha').innerHTML = `${maisVelha.nome}<br><span style="font-size:13px;color:#666">${maisVelha.idade} anos</span>`;
-            document.getElementById('st_artilheira').innerHTML = `${artilheira.nome}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube} golos</span>`;
-            document.getElementById('st_assist').innerHTML = `${liderAssist.nome}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube} assist.</span>`;
+            document.getElementById('st_mais_nova').innerHTML = maisNova ? `${maisNova.nome}<br><span style="font-size:13px;color:#666">${maisNova.idade} anos</span>` : '-';
+            document.getElementById('st_mais_velha').innerHTML = maisVelha ? `${maisVelha.nome}<br><span style="font-size:13px;color:#666">${maisVelha.idade} anos</span>` : '-';
+            document.getElementById('st_artilheira').innerHTML = `${artilheira.nome}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube || 0} golos</span>`;
+            document.getElementById('st_assist').innerHTML = `${liderAssist.nome}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
         }
 
-        // Inicialização automática
+        // Início
         window.onload = () => { carregarJogadoras(); };
     </script>
 </body>
