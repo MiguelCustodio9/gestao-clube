@@ -80,7 +80,7 @@
                 <label>Ordenar por:</label>
                 <select id="ordenarPor" onchange="carregarJogadoras()">
                     <option value="nome_desportivo">Nome Desportivo</option>
-                    <option value="data_nascimento">Idade / Data de Nasc.</option>
+                    <option value="data_nascimento">Data de Nasc.</option>
                 </select>
             </div>
         </div>
@@ -104,10 +104,11 @@
 
 <script>
     // --- CONFIGURAÇÃO DO SUPABASE ---
-    // Substitui estes valores com os dados do teu projeto do Supabase
-    const SUPABASE_URL = 'https://lwehgnistggtekqbshur.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M';
+    // !!! AJUSTA APENAS ESTAS DUAS LINHAS !!!
+    const SUPABASE_URL = 'https://lwehgnistggtekqbshur.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; // Coloca a tua completa aqui
 
+    // Inicialização do cliente de forma segura
     const clientSupabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     // --- FUNÇÃO PARA CARREGAR E FILTRAR DADOS ---
@@ -117,15 +118,12 @@
         const nomeFiltro = document.getElementById('filtroNome').value;
         const ordenarPor = document.getElementById('ordenarPor').value;
 
-        // Inicia a query na tabela do Supabase
         let query = clientSupabase.from('jogadoras').select('*');
 
-        // Aplica filtro por nome se estiver preenchido
         if (nomeFiltro) {
             query = query.ilike('nome_desportivo', `%${nomeFiltro}%`);
         }
 
-        // Aplica a ordenação escolhida
         query = query.order(ordenarPor, { ascending: true });
 
         const { data, error } = await query;
@@ -135,7 +133,6 @@
             return;
         }
 
-        // Renderiza as linhas na tabela HTML
         const tbody = document.getElementById('tabelaJogadoras');
         tbody.innerHTML = '';
 
@@ -157,7 +154,6 @@
     document.getElementById('formJogadora').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Captura os dados e trata campos numéricos/vazios para evitar erros no Postgres
         const numero = document.getElementById('numero_preferido').value;
         const posicaoEscolhida = document.getElementById('posicao').value;
 
@@ -167,7 +163,7 @@
             data_nascimento: document.getElementById('data_nascimento').value,
             escalao_atual: document.getElementById('escalao_atual').value || null,
             posicao: posicaoEscolhida === "" ? null : posicaoEscolhida,
-            numero_preferido: numero === "" ? null : parseInt(numero) // Converte string vazia para NULL real
+            numero_preferido: numero === "" ? null : parseInt(numero)
         };
 
         const { error } = await clientSupabase.from('jogadoras').insert([novaJogadora]);
@@ -177,11 +173,10 @@
         } else {
             alert('Jogadora adicionada com sucesso!');
             document.getElementById('formJogadora').reset();
-            carregarJogadoras(); // Atualiza a lista na tabela
+            carregarJogadoras(); 
         }
     });
 
-    // Executa assim que a página abre
     window.onload = carregarJogadoras;
 </script>
 
