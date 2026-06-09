@@ -24,7 +24,7 @@
         .main-content { flex-grow: 1; padding: 34px 36px 48px; overflow-y: auto; position: relative; background: linear-gradient(180deg, rgba(245,248,247,1) 0%, rgba(237,244,242,1) 100%); }
         .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 28px; padding: 20px 24px; background: rgba(255,255,255,0.8); border-radius: 24px; box-shadow: 0 18px 50px rgba(15,48,37,0.06); backdrop-filter: blur(10px); }
         .topbar-brand { display: flex; align-items: center; gap: 14px; }
-        .topbar-logo { width: 52px; height: 52px; border-radius: 18px; overflow: hidden; border: 2px solid rgba(0, 90, 67, 0.18); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .topbar-logo { width: 42px; height: 42px; border-radius: 16px; overflow: hidden; border: 2px solid rgba(0, 90, 67, 0.18); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
         .topbar-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .topbar-title { margin: 0; font-size: 24px; font-weight: 800; color: #0b4d33; }
         .topbar-subtitle { margin: 0; color: #5f7a6f; font-size: 14px; }
@@ -70,6 +70,7 @@
         .btn-status { background-color: #2196f3; }
         .btn-delete { background-color: #f44336; }
         .btn-view { background-color: #6c757d; }
+        .action-group { display: flex; flex-wrap: nowrap; gap: 4px; align-items: center; white-space: nowrap; }
         
         /* Modais */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.48); overflow-y: auto; }
@@ -132,12 +133,12 @@
                         </select>
                     </div>
                     <div class="form-group"><label>Escalão</label><input type="text" id="j_escalao"></div>
-                    <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
+                    <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero" min="0" step="1"></div>
                     <div class="form-group"><label>Clube Anterior</label><input type="text" id="j_clube_anterior"></div>
                     <div class="form-group"><label>Primeira Época</label><input type="text" id="j_primeira_epoca"></div>
-                    <div class="form-group"><label>Jogos</label><input type="number" id="j_jogos" value="0"></div>
-                    <div class="form-group"><label>Golos</label><input type="number" id="j_golos" value="0"></div>
-                    <div class="form-group"><label>G. Sofridos</label><input type="number" id="j_sofridos" value="0"></div>
+                    <div class="form-group"><label>Jogos</label><input type="number" id="j_jogos" value="0" min="0" step="1"></div>
+                    <div class="form-group"><label>Golos</label><input type="number" id="j_golos" value="0" min="0" step="1"></div>
+                    <div class="form-group"><label>G. Sofridos</label><input type="number" id="j_sofridos" value="0" min="0" step="1"></div>
                     <input type="hidden" id="j_ativo" value="true">
                     <button type="submit">Adicionar Atleta</button>
                 </form>
@@ -352,13 +353,13 @@
                 </select>
             </div>
             <div class="form-group"><label>Escalão</label><input type="text" id="ej_escalao"></div>
-            <div class="form-group"><label>Nº Camisola</label><input type="number" id="ej_numero"></div>
+            <div class="form-group"><label>Nº Camisola</label><input type="number" id="ej_numero" min="0" step="1"></div>
             <div class="form-group"><label>Clube Anterior</label><input type="text" id="ej_clube_anterior"></div>
             <div class="form-group"><label>Primeira Época</label><input type="text" id="ej_primeira_epoca"></div>
-            <div class="form-group"><label>Jogos</label><input type="number" id="ej_jogos"></div>
-            <div class="form-group"><label>Golos</label><input type="number" id="ej_golos"></div>
-            <div class="form-group"><label>Golos Sofridos</label><input type="number" id="ej_sofridos"></div>
-            <div class="form-group"><label>Assistências</label><input type="number" id="ej_assist"></div>
+            <div class="form-group"><label>Jogos</label><input type="number" id="ej_jogos" min="0" step="1"></div>
+            <div class="form-group"><label>Golos</label><input type="number" id="ej_golos" min="0" step="1"></div>
+            <div class="form-group"><label>Golos Sofridos</label><input type="number" id="ej_sofridos" min="0" step="1"></div>
+            <div class="form-group"><label>Assistências</label><input type="number" id="ej_assist" min="0" step="1"></div>
             <div class="form-group"><label>Ativa</label><input type="checkbox" id="ej_ativo"></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
@@ -535,6 +536,40 @@
             return d.toLocaleDateString('pt-PT');
         }
 
+        function getDataHoje() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function validarDataNascimento(dataNasc) {
+            if (!dataNasc) throw new Error('A data de nascimento é obrigatória.');
+            const nasc = new Date(dataNasc);
+            if (Number.isNaN(nasc.getTime())) throw new Error('Data de nascimento inválida.');
+            const hoje = new Date();
+            if (nasc > hoje) throw new Error('A data de nascimento não pode ser superior à data atual.');
+        }
+
+        function parseIntNaoNegativo(valor, nomeCampo, defaultZero = false) {
+            if (valor === '' || valor === null || valor === undefined) {
+                return defaultZero ? 0 : null;
+            }
+            const numero = Number(valor);
+            if (!Number.isFinite(numero) || !Number.isInteger(numero) || numero < 0) {
+                throw new Error(`O campo "${nomeCampo}" deve ser um número inteiro igual ou superior a 0.`);
+            }
+            return numero;
+        }
+
+        async function gerarProximoIdJogadora() {
+            const { data, error } = await dbClient.from('jogadoras').select('id_jogadora').order('id_jogadora', { ascending: false }).limit(1);
+            if (error) {
+                console.error('Erro ao buscar último id_jogadora:', error);
+                return 1;
+            }
+            const lastId = data?.[0]?.id_jogadora;
+            const maxId = Number(lastId);
+            return Number.isInteger(maxId) && maxId > 0 ? maxId + 1 : 1;
+        }
+
         // --- CARREGAR JOGADORAS ---
         async function carregarSeccaoJogadoras(apenasAtivas, targetTbodySelector) {
             if(!dbClient) return;
@@ -574,10 +609,12 @@
                     <td>${j.assistencias_clube || 0}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
-                        <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
-                        <button class="btn-action btn-view" onclick="verJogadora('${dadosBase64}')">Ver</button>
-                        <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
-                        <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <div class="action-group">
+                            <button class="btn-action btn-view" onclick="verJogadora('${dadosBase64}')">Ver</button>
+                            <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
+                            <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
+                            <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -625,9 +662,11 @@
                     <td>${t.primeira_epoca || '-'}</td>
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
-                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
-                        <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
-                        <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <div class="action-group">
+                            <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
+                            <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
+                            <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -679,8 +718,10 @@
                     <td>${v.escalao_equipa}</td>
                     <td>${v.funcao_treinador || '-'}</td>
                     <td>
-                        <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button>
-                        <button class="btn-action btn-view" onclick="verVinculo(${v.id_vinculo})">Ver</button>
+                        <div class="action-group">
+                            <button class="btn-action btn-view" onclick="verVinculo(${v.id_vinculo})">Ver</button>
+                            <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('vinculo_epocas', ${v.id_vinculo}, carregarVinculos)">X</button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -698,28 +739,41 @@
             const jg = document.getElementById('j_jogos').value;
             const gl = document.getElementById('j_golos').value;
             const sf = document.getElementById('j_sofridos').value;
+            const dataNasc = document.getElementById('j_data_nasc').value;
 
-            const nova = {
-                nome_desportivo: document.getElementById('j_nome_desp').value,
-                nome_completo: document.getElementById('j_nome_comp').value,
-                data_nascimento: document.getElementById('j_data_nasc').value,
-                nacionalidade: document.getElementById('j_nacionalidade').value || null,
-                posicao: document.getElementById('j_posicao').value || null,
-                pe_preferencial: document.getElementById('j_pe_preferencial').value || null,
-                numero_preferido: num ? parseInt(num) : null,
-                clube_anterior: document.getElementById('j_clube_anterior').value || null,
-                primeira_epoca: document.getElementById('j_primeira_epoca').value || null,
-                escalao_etario: document.getElementById('j_escalao').value || null,
-                jogos_clube: jg ? parseInt(jg) : 0,
-                golos_clube: gl ? parseInt(gl) : 0,
-                golos_sofridos: sf ? parseInt(sf) : 0,
-                assistencias_clube: 0,
-                ativo: true
-            };
+            try {
+                validarDataNascimento(dataNasc);
+                const numeroPreferido = parseIntNaoNegativo(num, 'Nº Camisola', false);
+                const jogos = parseIntNaoNegativo(jg, 'Jogos', true);
+                const golos = parseIntNaoNegativo(gl, 'Golos', true);
+                const sofridos = parseIntNaoNegativo(sf, 'G. Sofridos', true);
+                const novaId = await gerarProximoIdJogadora();
 
-            await dbClient.from('jogadoras').insert([nova]);
-            document.getElementById('formJogadora').reset();
-            carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+                const nova = {
+                    id_jogadora: novaId,
+                    nome_desportivo: document.getElementById('j_nome_desp').value,
+                    nome_completo: document.getElementById('j_nome_comp').value,
+                    data_nascimento: dataNasc,
+                    nacionalidade: document.getElementById('j_nacionalidade').value || null,
+                    posicao: document.getElementById('j_posicao').value || null,
+                    pe_preferencial: document.getElementById('j_pe_preferencial').value || null,
+                    numero_preferido: numeroPreferido,
+                    clube_anterior: document.getElementById('j_clube_anterior').value || null,
+                    primeira_epoca: document.getElementById('j_primeira_epoca').value || null,
+                    escalao_etario: document.getElementById('j_escalao').value || null,
+                    jogos_clube: jogos,
+                    golos_clube: golos,
+                    golos_sofridos: sofridos,
+                    assistencias_clube: 0,
+                    ativo: true
+                };
+
+                await dbClient.from('jogadoras').insert([nova]);
+                document.getElementById('formJogadora').reset();
+                carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+            } catch (err) {
+                alert(err.message || 'Erro ao validar os dados da atleta.');
+            }
         });
 
         function verJogadora(base64) {
@@ -757,28 +811,40 @@
         async function salvarEdicaoJogadora() {
             const id = document.getElementById('ej_id').value;
             const origem = document.getElementById('ej_view_origem').value;
+            const dataNasc = document.getElementById('ej_data_nasc').value;
 
-            await dbClient.from('jogadoras').update({
-                nome_desportivo: document.getElementById('ej_nome_desp').value,
-                nome_completo: document.getElementById('ej_nome_comp').value,
-                data_nascimento: document.getElementById('ej_data_nasc').value,
-                nacionalidade: document.getElementById('ej_nacionalidade').value || null,
-                posicao: document.getElementById('ej_posicao').value || null,
-                pe_preferencial: document.getElementById('ej_pe_preferencial').value || null,
-                escalao_etario: document.getElementById('ej_escalao').value || null,
-                numero_preferido: document.getElementById('ej_numero').value ? parseInt(document.getElementById('ej_numero').value) : null,
-                clube_anterior: document.getElementById('ej_clube_anterior').value || null,
-                primeira_epoca: document.getElementById('ej_primeira_epoca').value || null,
-                jogos_clube: parseInt(document.getElementById('ej_jogos').value) || 0,
-                golos_clube: parseInt(document.getElementById('ej_golos').value) || 0,
-                golos_sofridos: parseInt(document.getElementById('ej_sofridos').value) || 0,
-                assistencias_clube: parseInt(document.getElementById('ej_assist').value) || 0,
-                ativo: document.getElementById('ej_ativo').checked
-            }).eq('id_jogadora', id);
-            
-            fecharModais();
-            if(origem === 'ativas') carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
-            else carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
+            try {
+                validarDataNascimento(dataNasc);
+                const numeroPreferido = parseIntNaoNegativo(document.getElementById('ej_numero').value, 'Nº Camisola', false);
+                const jogos = parseIntNaoNegativo(document.getElementById('ej_jogos').value, 'Jogos', true);
+                const golos = parseIntNaoNegativo(document.getElementById('ej_golos').value, 'Golos', true);
+                const sofridos = parseIntNaoNegativo(document.getElementById('ej_sofridos').value, 'Golos Sofridos', true);
+                const assistencias = parseIntNaoNegativo(document.getElementById('ej_assist').value, 'Assistências', true);
+
+                await dbClient.from('jogadoras').update({
+                    nome_desportivo: document.getElementById('ej_nome_desp').value,
+                    nome_completo: document.getElementById('ej_nome_comp').value,
+                    data_nascimento: dataNasc,
+                    nacionalidade: document.getElementById('ej_nacionalidade').value || null,
+                    posicao: document.getElementById('ej_posicao').value || null,
+                    pe_preferencial: document.getElementById('ej_pe_preferencial').value || null,
+                    escalao_etario: document.getElementById('ej_escalao').value || null,
+                    numero_preferido: numeroPreferido,
+                    clube_anterior: document.getElementById('ej_clube_anterior').value || null,
+                    primeira_epoca: document.getElementById('ej_primeira_epoca').value || null,
+                    jogos_clube: jogos,
+                    golos_clube: golos,
+                    golos_sofridos: sofridos,
+                    assistencias_clube: assistencias,
+                    ativo: document.getElementById('ej_ativo').checked
+                }).eq('id_jogadora', id);
+                
+                fecharModais();
+                if(origem === 'ativas') carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+                else carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
+            } catch (err) {
+                alert(err.message || 'Erro ao validar os dados da atleta.');
+            }
         }
 
         async function mudarEstadoJogadora(id, est, eraAtiva) {
@@ -898,6 +964,12 @@
 
         window.onload = () => {
             console.debug('dbClient available?', !!dbClient);
+            const hoje = getDataHoje();
+            const jDataNasc = document.getElementById('j_data_nasc');
+            const ejDataNasc = document.getElementById('ej_data_nasc');
+            if (jDataNasc) jDataNasc.max = hoje;
+            if (ejDataNasc) ejDataNasc.max = hoje;
+
             // carregar todas as listas para popular o estado inicial
             if (dbClient) {
                 carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
