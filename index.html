@@ -73,12 +73,12 @@
         td { font-size: 14px; }
         tr.inativo-row { background-color: #fbfbfb; opacity: 0.75; }
         
-        /* Badges Oitavadas */
+        /* Badges */
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; }
         .badge-ativa { background-color: #e6f4ea; color: #137333; }
         .badge-inativa { background-color: #fce8e6; color: #c5221f; }
         
-        /* Botões de Ação rápidos */
+        /* Botões de Ação */
         .btn-action { padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 4px; color: white; transition: opacity 0.2s; }
         .btn-action:hover { opacity: 0.9; }
         .btn-edit { background-color: #ff9800; }
@@ -139,7 +139,6 @@
                     <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
                     <div class="form-group"><label>Jogos Iniciais</label><input type="number" id="j_jogos" value="0"></div>
                     <div class="form-group"><label>Golos Iniciais</label><input type="number" id="j_golos" value="0"></div>
-                    <!-- CORRIGIDO: removido "font" do value -->
                     <div class="form-group"><label>G. Sofridos Iniciais</label><input type="number" id="j_sofridos" value="0"></div>
                     <button type="submit">Gravar Atleta</button>
                 </form>
@@ -276,7 +275,6 @@
 
         let visaoAtual = 'ativas';
 
-        // CORRIGIDO: recebe o elemento clicado como parâmetro em vez de usar event.currentTarget
         function switchView(viewName, el) {
             visaoAtual = viewName;
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -304,7 +302,7 @@
             return idade;
         }
 
-        // CORRIGIDO: typo "palabra" → "palavra"
+        // CORRIGIDO: alterado "palabra" para "palavra" para resolver o crash da consola!
         function formatarPosicao(pos) {
             if (!pos) return '-';
             return pos.split(' ').map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1)).join(' ');
@@ -509,7 +507,6 @@
             });
         }
 
-        // CORRIGIDO: adicionado caso 'jogadoras' na chave primária
         async function eliminarRegistoGenerico(tabela, id, callback) {
             if(confirm('Eliminar este registo permanentemente?')) {
                 let pk;
@@ -521,8 +518,8 @@
             }
         }
 
-        // CORRIGIDO: nome da função era "calcularEstatistics" (typo) → "calcularEstatisticas"
-        // CORRIGIDO: artilheira.nome e liderAssist.nome → .nome_desportivo
+        // --- CÁLCULO DE ESTATÍSTICAS ---
+        // CORRIGIDO: alterado de .nome para .nome_desportivo para as estatísticas funcionarem a 100%
         async function calcularEstatisticas() {
             const { data: atletas } = await dbClient.from('jogadoras').select('*');
             if(!atletas || atletas.length === 0) return;
@@ -551,7 +548,6 @@
             document.getElementById('st_media_idade').innerText = (somaIdades / atletas.length).toFixed(1) + " anos";
             document.getElementById('st_mais_nova').innerHTML = maisNova ? `${maisNova.nome}<br><span style="font-size:13px;color:#666">${maisNova.idade} anos</span>` : '-';
             document.getElementById('st_mais_velha').innerHTML = maisVelha ? `${maisVelha.nome}<br><span style="font-size:13px;color:#666">${maisVelha.idade} anos</span>` : '-';
-            // CORRIGIDO: .nome → .nome_desportivo
             document.getElementById('st_artilheira').innerHTML = `${artilheira.nome_desportivo}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube || 0} golos</span>`;
             document.getElementById('st_assist').innerHTML = `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
         }
