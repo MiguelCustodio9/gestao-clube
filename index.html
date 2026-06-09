@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão do Clube - Futsal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        h1, h2 { color: #005a43; }
+        .container { max-width: 1200px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-group { display: inline-block; margin-right: 10px; margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+        button { background-color: #005a43; color: white; padding: 9px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #004231; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #005a43; color: white; cursor: pointer; }
+        th:hover { background-color: #004231; }
+        .filters { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Painel de Gestão do Clube</h1>
+
+    <div class="card">
+        <h2>Adicionar Nova Atleta</h2>
+        <form id="formJogadora">
+            <div class="form-group">
+                <label>Nome Desportivo</label>
+                <input type="text" id="nome_desportivo" required placeholder="Ex: Eva Lucas">
+            </div>
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="nome_completo" required placeholder="Ex: Eva Gil Mendes...">
+            </div>
+            <div class="form-group">
+                <label>Data Nascimento</label>
+                <input type="date" id="data_nascimento" required>
+            </div>
+            <div class="form-group">
+                <label>Posição</label>
+                <select id="posicao">
+                    <option value="">-- Indefinida --</option>
+                    <option value="guarda redes">Guarda Redes</option>
+                    <option value="fixo/ala">Fixo/Ala</option>
+                    <option value="fixo">Fixo</option>
+                    <option value="ala">Ala</option>
+                    <option value="ala/pivot">Ala/Pivot</option>
+                    <option value="pivot">Pivot</option>
+                    <option value="universal">Universal</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Escalão Atual</label>
+                <input type="text" id="escalao_atual" placeholder="Ex: Juniores">
+            </div>
+            <div class="form-group">
+                <label>Nº Camisola</label>
+                <input type="number" id="numero_preferido" placeholder="Ex: 10">
+            </div>
+            <div class="form-group" style="vertical-align: bottom;">
+                <button type="submit">Gravar Jogadora</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Lista de Jogadoras</h2>
+        <div class="filters">
+            <div>
+                <label>Procurar por nome:</label>
+                <input type="text" id="filtroNome" placeholder="Digita um nome..." oninput="carregarJogadoras()">
+            </div>
+            <div>
+                <label>Ordenar por:</label>
+                <select id="ordenarPor" onchange="carregarJogadoras()">
+                    <option value="nome_desportivo">Nome Desportivo</option>
+                    <option value="data_nascimento">Idade / Data de Nasc.</option>
+                </select>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome Desportivo</th>
+                    <th>Nome Completo</th>
+                    <th>Data Nascimento</th>
+                    <th>Posição</th>
+                    <th>Escalão Atual</th>
+                    <th>Nº</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaJogadoras">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURAÇÃO DO SUPABASE ---
+    // Substitui estes valores com os dados do teu projeto do Supabase
+    const SUPABASE_URL = 'https://TEU_PROJETO.supabase.co';
+    const SUPABASE_ANON_KEY = 'TUA_CHAVE_ANON_LONGUISSIMA';
+
+    const supabase = '@supabase/supabase-js' in window ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    // --- FUNÇÃO PARA CARREGAR E FILTRAR DADOS ---
+    async function carregarJogadoras() {
+        if (!supabase) return;
+
+        const nomeFiltro = document.getElementById('filtroNome').value;
+        const ordenarPor = document.getElementById('ordenarPor').value;
+
+        // Inicia a query na tabela do Supabase
+        let query = supabase.from('jogadoras').select('*');
+
+        // Aplica filtro por nome se estiver preenchido
+        if (nomeFiltro) {
+            query = query.ilike('nome_desportivo', `%${nomeFiltro}%`);
+        }
+
+        // Aplica a ordenação escolhida
+        query = query.order(ordenarPor, { ascending: true });
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Erro ao buscar dados:', error);
+            return;
+        }
+
+        // Renderiza as linhas na tabela HTML
+        const tbody = document.getElementById('tabelaJogadoras');
+        tbody.innerHTML = '';
+
+        data.forEach(jogadora => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <strong><td>${jogadora.nome_desportivo}</td></strong>
+                <td>${jogadora.nome_completo}</td>
+                <td>${jogadora.data_nascimento}</td>
+                <td>${jogadora.posicao || '<i>Indefinida</i>'}</td>
+                <td>${jogadora.escalao_atual || '-'}</td>
+                <td>${jogadora.numero_preferido || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- FUNÇÃO PARA INSERIR NOVA JOGADORA ---
+    document.getElementById('formJogadora').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Captura os dados e trata campos numéricos/vazios para evitar erros no Postgres
+        const numero = document.getElementById('numero_preferido').value;
+        const posicaoEscolhida = document.getElementById('posicao').value;
+
+        const novaJogadora = {
+            nome_desportivo: document.getElementById('nome_desportivo').value,
+            nome_completo: document.getElementById('nome_completo').value,
+            data_nascimento: document.getElementById('data_nascimento').value,
+            escalao_atual: document.getElementById('escalao_atual').value || null,
+            posicao: posicaoEscolhida === "" ? null : posicaoEscolhida,
+            numero_preferido: numero === "" ? null : parseInt(numero) // Converte string vazia para NULL real
+        };
+
+        const { error } = await supabase.from('jogadoras').insert([novaJogadora]);
+
+        if (error) {
+            alert('Erro ao guardar na base de dados: ' + error.message);
+        } else {
+            alert('Jogadora adicionada com sucesso!');
+            document.getElementById('formJogadora').reset();
+            carregarJogadoras(); // Atualiza a lista na tabela
+        }
+    });
+
+    // Executa assim que a página abre
+    window.onload = carregarJogadoras;
+</script>
+
+</body>
+</html>
