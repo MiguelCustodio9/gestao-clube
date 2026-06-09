@@ -550,7 +550,11 @@
             if (error) { console.error('Erro ao buscar treinadores:', error); return; }
             const tbody = document.querySelector('#tabelaTreinadores tbody');
             tbody.innerHTML = '';
-            data?.forEach(t => {
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">Nenhum treinador encontrado.</td></tr>`;
+                return;
+            }
+            data.forEach(t => {
                 const tr = document.createElement('tr');
                 if(!t.ativo) tr.className = 'inativo-row';
                 const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(t)));
@@ -583,7 +587,8 @@
                 primeira_epoca: document.getElementById('t_primeira_epoca').value || null,
                 ativo: true
             };
-            await dbClient.from('treinadores').insert([novo]);
+            const { error } = await dbClient.from('treinadores').insert([novo]);
+            if (error) { console.error('Erro ao inserir treinador:', error); return; }
             document.getElementById('formTreinador').reset();
             carregarTreinadores();
         });
@@ -691,7 +696,10 @@
             document.getElementById('st_assist').innerHTML = `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
         }
 
-        window.onload = () => { switchView('ativas', document.querySelector('.view-tab.active')); };
+        window.onload = () => {
+            switchView('ativas', document.querySelector('.view-tab.active'));
+            carregarTreinadores();
+        };
     </script>
 </body>
 </html>
