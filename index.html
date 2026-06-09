@@ -796,6 +796,28 @@
             document.getElementById('vj_ativo').value = j.ativo ? 'Sim' : 'Não';
         }
 
+        function abrirModalJogadora(base64, origem) {
+            const j = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalEditarJogadora').style.display = 'block';
+            document.getElementById('ej_id').value = j.id_jogadora;
+            document.getElementById('ej_view_origem').value = origem;
+            document.getElementById('ej_nome_desp').value = j.nome_desportivo || '';
+            document.getElementById('ej_nome_comp').value = j.nome_completo || '';
+            document.getElementById('ej_data_nasc').value = j.data_nascimento || '';
+            document.getElementById('ej_nacionalidade').value = j.nacionalidade || '';
+            document.getElementById('ej_posicao').value = j.posicao || '';
+            document.getElementById('ej_pe_preferencial').value = j.pe_preferencial || '';
+            document.getElementById('ej_escalao').value = j.escalao_etario || '';
+            document.getElementById('ej_numero').value = j.numero_preferido != null ? j.numero_preferido : '';
+            document.getElementById('ej_clube_anterior').value = j.clube_anterior || '';
+            document.getElementById('ej_primeira_epoca').value = j.primeira_epoca || '';
+            document.getElementById('ej_jogos').value = j.jogos_clube != null ? j.jogos_clube : 0;
+            document.getElementById('ej_golos').value = j.golos_clube != null ? j.golos_clube : 0;
+            document.getElementById('ej_sofridos').value = j.golos_sofridos != null ? j.golos_sofridos : 0;
+            document.getElementById('ej_assist').value = j.assistencias_clube != null ? j.assistencias_clube : 0;
+            document.getElementById('ej_ativo').checked = Boolean(j.ativo);
+        }
+
         function verTreinador(base64) {
             const t = JSON.parse(decodeURIComponent(atob(base64)));
             document.getElementById('modalVerTreinador').style.display = 'block';
