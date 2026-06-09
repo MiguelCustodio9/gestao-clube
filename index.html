@@ -84,6 +84,7 @@
         .btn-edit { background-color: #ff9800; }
         .btn-status { background-color: #2196f3; }
         .btn-delete { background-color: #f44336; }
+        .btn-view { background-color: #6c757d; }
         
         /* Modais */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow-y: auto; }
@@ -122,6 +123,7 @@
                     <div class="form-group"><label>Nome Desportivo</label><input type="text" id="j_nome_desp" required></div>
                     <div class="form-group"><label>Nome Completo</label><input type="text" id="j_nome_comp" required></div>
                     <div class="form-group"><label>Data Nascimento</label><input type="date" id="j_data_nasc" required></div>
+                    <div class="form-group"><label>Nacionalidade</label><input type="text" id="j_nacionalidade" value="Portuguesa"></div>
                     <div class="form-group">
                         <label>Posição</label>
                         <select id="j_posicao">
@@ -135,11 +137,22 @@
                             <option value="universal">Universal</option>
                         </select>
                     </div>
+                    <div class="form-group"><label>Pé Preferencial</label>
+                        <select id="j_pe_preferencial">
+                            <option value="">-- Selecione --</option>
+                            <option value="Direito">Direito</option>
+                            <option value="Esquerdo">Esquerdo</option>
+                            <option value="Ambidextro">Ambidextro</option>
+                        </select>
+                    </div>
                     <div class="form-group"><label>Escalão</label><input type="text" id="j_escalao"></div>
                     <div class="form-group"><label>Nº Camisola</label><input type="number" id="j_numero"></div>
+                    <div class="form-group"><label>Clube Anterior</label><input type="text" id="j_clube_anterior" placeholder="Ex: ADR Retaxo"></div>
+                    <div class="form-group"><label>Primeira Época</label><input type="text" id="j_primeira_epoca" placeholder="Ex: 2025/2026"></div>
                     <div class="form-group"><label>Jogos</label><input type="number" id="j_jogos" value="0"></div>
                     <div class="form-group"><label>Golos</label><input type="number" id="j_golos" value="0"></div>
                     <div class="form-group"><label>G. Sofridos</label><input type="number" id="j_sofridos" value="0"></div>
+                    <div class="form-group"><label>Ativa</label><input type="checkbox" id="j_ativo" checked></div>
                     <button type="submit">Gravar Atleta</button>
                 </form>
             </div>
@@ -148,7 +161,7 @@
                 <h2>Lista de Atletas no Ativo</h2>
                 <table id="tabelaAtivas">
                     <thead>
-                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Nº</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
+                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Data Nasc</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -161,7 +174,7 @@
                 <h2>Lista de Atletas Inativas</h2>
                 <table id="tabelaInativas">
                     <thead>
-                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Nº</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
+                        <tr><th>Nome Desportivo</th><th>Posição</th><th>Escalão</th><th>Data Nasc</th><th>Jogos</th><th>Golos</th><th>G. Sofridos</th><th>Assis.</th><th>Estado</th><th>Ações</th></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -268,14 +281,79 @@
             <div class="form-group"><label>Nome Desportivo</label><input type="text" id="ej_nome_desp"></div>
             <div class="form-group"><label>Nome Completo</label><input type="text" id="ej_nome_comp"></div>
             <div class="form-group"><label>Data Nascimento</label><input type="date" id="ej_data_nasc"></div>
+            <div class="form-group"><label>Nacionalidade</label><input type="text" id="ej_nacionalidade"></div>
+            <div class="form-group"><label>Posição</label>
+                <select id="ej_posicao">
+                    <option value="">-- Selecione --</option>
+                    <option value="guarda redes">Guarda Redes</option>
+                    <option value="fixo/ala">Fixo/Ala</option>
+                    <option value="fixo">Fixo</option>
+                    <option value="ala">Ala</option>
+                    <option value="ala/pivot">Ala/Pivot</option>
+                    <option value="pivot">Pivot</option>
+                    <option value="universal">Universal</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Pé Preferencial</label>
+                <select id="ej_pe_preferencial">
+                    <option value="">-- Selecione --</option>
+                    <option value="Direito">Direito</option>
+                    <option value="Esquerdo">Esquerdo</option>
+                    <option value="Ambidextro">Ambidextro</option>
+                </select>
+            </div>
             <div class="form-group"><label>Escalão Etário</label><input type="text" id="ej_escalao"></div>
+            <div class="form-group"><label>Nº Camisola</label><input type="number" id="ej_numero"></div>
+            <div class="form-group"><label>Clube Anterior</label><input type="text" id="ej_clube_anterior"></div>
+            <div class="form-group"><label>Primeira Época</label><input type="text" id="ej_primeira_epoca"></div>
             <div class="form-group"><label>Jogos</label><input type="number" id="ej_jogos"></div>
             <div class="form-group"><label>Golos</label><input type="number" id="ej_golos"></div>
             <div class="form-group"><label>Golos Sofridos</label><input type="number" id="ej_sofridos"></div>
             <div class="form-group"><label>Assistências</label><input type="number" id="ej_assist"></div>
+            <div class="form-group"><label>Ativa</label><input type="checkbox" id="ej_ativo"></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Cancelar</button>
                 <button type="button" onclick="salvarEdicaoJogadora()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVerJogadora" class="modal">
+        <div class="modal-content">
+            <h3>Ver Atleta</h3>
+            <div class="form-group"><label>Nome Desportivo</label><input type="text" id="vj_nome_desp" readonly></div>
+            <div class="form-group"><label>Nome Completo</label><input type="text" id="vj_nome_comp" readonly></div>
+            <div class="form-group"><label>Data Nascimento</label><input type="text" id="vj_data_nasc" readonly></div>
+            <div class="form-group"><label>Nacionalidade</label><input type="text" id="vj_nacionalidade" readonly></div>
+            <div class="form-group"><label>Posição</label><input type="text" id="vj_posicao" readonly></div>
+            <div class="form-group"><label>Pé Preferencial</label><input type="text" id="vj_pe_preferencial" readonly></div>
+            <div class="form-group"><label>Escalão Etário</label><input type="text" id="vj_escalao" readonly></div>
+            <div class="form-group"><label>Nº Camisola</label><input type="text" id="vj_numero" readonly></div>
+            <div class="form-group"><label>Clube Anterior</label><input type="text" id="vj_clube_anterior" readonly></div>
+            <div class="form-group"><label>Primeira Época</label><input type="text" id="vj_primeira_epoca" readonly></div>
+            <div class="form-group"><label>Jogos</label><input type="text" id="vj_jogos" readonly></div>
+            <div class="form-group"><label>Golos</label><input type="text" id="vj_golos" readonly></div>
+            <div class="form-group"><label>Golos Sofridos</label><input type="text" id="vj_sofridos" readonly></div>
+            <div class="form-group"><label>Assistências</label><input type="text" id="vj_assist" readonly></div>
+            <div class="form-group"><label>Ativa</label><input type="text" id="vj_ativo" readonly></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVerTreinador" class="modal">
+        <div class="modal-content">
+            <h3>Ver Treinador/Staff</h3>
+            <div class="form-group"><label>Nome Desportivo</label><input type="text" id="vt_nome_desp" readonly></div>
+            <div class="form-group"><label>Nome Completo</label><input type="text" id="vt_nome_comp" readonly></div>
+            <div class="form-group"><label>Data Nascimento</label><input type="text" id="vt_data_nasc" readonly></div>
+            <div class="form-group"><label>Nacionalidade</label><input type="text" id="vt_nacionalidade" readonly></div>
+            <div class="form-group"><label>Clube Anterior</label><input type="text" id="vt_clube_anterior" readonly></div>
+            <div class="form-group"><label>Primeira Época</label><input type="text" id="vt_primeira_epoca" readonly></div>
+            <div class="form-group"><label>Estado</label><input type="text" id="vt_ativo" readonly></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Fechar</button>
             </div>
         </div>
     </div>
@@ -302,7 +380,11 @@
             if(viewName === 'estatisticas') calcularEstatisticas();
         }
 
-        function fecharModais() { document.getElementById('modalEditarJogadora').style.display = 'none'; }
+        function fecharModais() {
+            document.getElementById('modalEditarJogadora').style.display = 'none';
+            document.getElementById('modalVerJogadora').style.display = 'none';
+            document.getElementById('modalVerTreinador').style.display = 'none';
+        }
         
         function calcularIdade(dataNasc) {
             if(!dataNasc) return 0;
@@ -318,6 +400,13 @@
         function formatarPosicao(pos) {
             if (!pos) return '-';
             return pos.split(' ').map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1)).join(' ');
+        }
+
+        function formatarData(data) {
+            if (!data) return '-';
+            const d = new Date(data);
+            if (Number.isNaN(d.getTime())) return data;
+            return d.toLocaleDateString('pt-PT');
         }
 
         // --- CARREGAR JOGADORAS ---
@@ -339,13 +428,14 @@
                     <td><strong>${j.nome_desportivo}</strong><br><small style="color:#777">${j.nome_completo}</small></td>
                     <td>${formatarPosicao(j.posicao)}</td>
                     <td>${j.escalao_etario || '-'}</td>
-                    <td>${j.numero_preferido || '-'}</td>
+                    <td>${formatarData(j.data_nascimento)}</td>
                     <td>${j.jogos_clube || 0}</td>
                     <td>${j.golos_clube || 0}</td>
                     <td>${j.golos_sofridos || 0}</td>
                     <td>${j.assistencias_clube || 0}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
+                        <button class="btn-action btn-view" onclick="verJogadora('${dadosBase64}')">Ver</button>
                         <button class="btn-action btn-edit" onclick="abrirModalJogadora('${dadosBase64}', '${apenasAtivas ? 'ativas' : 'inativas'}')">Editar</button>
                         <button class="btn-action btn-status" onclick="mudarEstadoJogadora(${j.id_jogadora}, ${j.ativo}, ${apenasAtivas})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
                         <button class="btn-action btn-delete" onclick="eliminarJogadora(${j.id_jogadora}, ${apenasAtivas}, '${targetTbodySelector}')">X</button>
@@ -367,12 +457,18 @@
                 nome_desportivo: document.getElementById('j_nome_desp').value,
                 nome_completo: document.getElementById('j_nome_comp').value,
                 data_nascimento: document.getElementById('j_data_nasc').value,
+                nacionalidade: document.getElementById('j_nacionalidade').value || null,
                 posicao: document.getElementById('j_posicao').value || null,
-                escalao_etario: document.getElementById('j_escalao').value || null,
+                pe_preferencial: document.getElementById('j_pe_preferencial').value || null,
                 numero_preferido: num ? parseInt(num) : null,
+                clube_anterior: document.getElementById('j_clube_anterior').value || null,
+                primeira_epoca: document.getElementById('j_primeira_epoca').value || null,
+                escalao_etario: document.getElementById('j_escalao').value || null,
                 jogos_clube: jg ? parseInt(jg) : 0,
                 golos_clube: gl ? parseInt(gl) : 0,
-                golos_sofridos: sf ? parseInt(sf) : 0
+                golos_sofridos: sf ? parseInt(sf) : 0,
+                assistencias_clube: 0,
+                ativo: document.getElementById('j_ativo').checked
             };
 
             await dbClient.from('jogadoras').insert([nova]);
@@ -388,11 +484,50 @@
             document.getElementById('ej_nome_desp').value = j.nome_desportivo;
             document.getElementById('ej_nome_comp').value = j.nome_completo;
             document.getElementById('ej_data_nasc').value = j.data_nascimento;
+            document.getElementById('ej_nacionalidade').value = j.nacionalidade || '';
+            document.getElementById('ej_posicao').value = j.posicao || '';
+            document.getElementById('ej_pe_preferencial').value = j.pe_preferencial || '';
             document.getElementById('ej_escalao').value = j.escalao_etario || '';
+            document.getElementById('ej_numero').value = j.numero_preferido || '';
+            document.getElementById('ej_clube_anterior').value = j.clube_anterior || '';
+            document.getElementById('ej_primeira_epoca').value = j.primeira_epoca || '';
             document.getElementById('ej_jogos').value = j.jogos_clube || 0;
             document.getElementById('ej_golos').value = j.golos_clube || 0;
             document.getElementById('ej_sofridos').value = j.golos_sofridos || 0;
             document.getElementById('ej_assist').value = j.assistencias_clube || 0;
+            document.getElementById('ej_ativo').checked = Boolean(j.ativo);
+        }
+
+        function verJogadora(base64) {
+            const j = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalVerJogadora').style.display = 'block';
+            document.getElementById('vj_nome_desp').value = j.nome_desportivo;
+            document.getElementById('vj_nome_comp').value = j.nome_completo;
+            document.getElementById('vj_data_nasc').value = formatarData(j.data_nascimento);
+            document.getElementById('vj_nacionalidade').value = j.nacionalidade || '-';
+            document.getElementById('vj_posicao').value = j.posicao || '-';
+            document.getElementById('vj_pe_preferencial').value = j.pe_preferencial || '-';
+            document.getElementById('vj_escalao').value = j.escalao_etario || '-';
+            document.getElementById('vj_numero').value = j.numero_preferido || '-';
+            document.getElementById('vj_clube_anterior').value = j.clube_anterior || '-';
+            document.getElementById('vj_primeira_epoca').value = j.primeira_epoca || '-';
+            document.getElementById('vj_jogos').value = j.jogos_clube || 0;
+            document.getElementById('vj_golos').value = j.golos_clube || 0;
+            document.getElementById('vj_sofridos').value = j.golos_sofridos || 0;
+            document.getElementById('vj_assist').value = j.assistencias_clube || 0;
+            document.getElementById('vj_ativo').value = j.ativo ? 'Sim' : 'Não';
+        }
+
+        function verTreinador(base64) {
+            const t = JSON.parse(decodeURIComponent(atob(base64)));
+            document.getElementById('modalVerTreinador').style.display = 'block';
+            document.getElementById('vt_nome_desp').value = t.nome_desportivo;
+            document.getElementById('vt_nome_comp').value = t.nome_completo;
+            document.getElementById('vt_data_nasc').value = formatarData(t.data_nascimento);
+            document.getElementById('vt_nacionalidade').value = t.nacionalidade || '-';
+            document.getElementById('vt_clube_anterior').value = t.clube_anterior || '-';
+            document.getElementById('vt_primeira_epoca').value = t.primeira_epoca || '-';
+            document.getElementById('vt_ativo').value = t.ativo ? 'Sim' : 'Não';
         }
 
         async function salvarEdicaoJogadora() {
@@ -403,11 +538,18 @@
                 nome_desportivo: document.getElementById('ej_nome_desp').value,
                 nome_completo: document.getElementById('ej_nome_comp').value,
                 data_nascimento: document.getElementById('ej_data_nasc').value,
+                nacionalidade: document.getElementById('ej_nacionalidade').value || null,
+                posicao: document.getElementById('ej_posicao').value || null,
+                pe_preferencial: document.getElementById('ej_pe_preferencial').value || null,
                 escalao_etario: document.getElementById('ej_escalao').value || null,
+                numero_preferido: document.getElementById('ej_numero').value ? parseInt(document.getElementById('ej_numero').value) : null,
+                clube_anterior: document.getElementById('ej_clube_anterior').value || null,
+                primeira_epoca: document.getElementById('ej_primeira_epoca').value || null,
                 jogos_clube: parseInt(document.getElementById('ej_jogos').value) || 0,
                 golos_clube: parseInt(document.getElementById('ej_golos').value) || 0,
                 golos_sofridos: parseInt(document.getElementById('ej_sofridos').value) || 0,
-                assistencias_clube: parseInt(document.getElementById('ej_assist').value) || 0
+                assistencias_clube: parseInt(document.getElementById('ej_assist').value) || 0,
+                ativo: document.getElementById('ej_ativo').checked
             }).eq('id_jogadora', id);
             
             fecharModais();
@@ -437,6 +579,7 @@
             data?.forEach(t => {
                 const tr = document.createElement('tr');
                 if(!t.ativo) tr.className = 'inativo-row';
+                const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(t)));
                 tr.innerHTML = `
                     <td><strong>${t.nome_desportivo}</strong></td>
                     <td>${t.nome_completo}</td>
@@ -446,6 +589,7 @@
                     <td>${t.primeira_epoca || '-'}</td>
                     <td><span class="badge ${t.ativo ? 'badge-ativa' : 'badge-inativa'}">${t.ativo ? '● Ativo' : '● Inativo'}</span></td>
                     <td>
+                        <button class="btn-action btn-view" onclick="verTreinador('${dadosBase64}')">Ver</button>
                         <button class="btn-action btn-status" onclick="mudarEstadoTreinador(${t.id_treinador}, ${t.ativo})">${t.ativo ? 'Desativar' : 'Ativar'}</button>
                         <button class="btn-action btn-delete" onclick="eliminarRegistoGenerico('treinadores', ${t.id_treinador}, carregarTreinadores)">X</button>
                     </td>
