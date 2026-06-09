@@ -3,23 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão do Clube - Futsal</title>
+    <title>Gestão Completa do Clube - Futsal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         h1, h2 { color: #005a43; }
-        .container { max-width: 1200px; margin: auto; }
+        .container { max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .form-group { display: inline-block; margin-right: 10px; margin-bottom: 10px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 180px; }
         button { background-color: #005a43; color: white; padding: 9px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #004231; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #005a43; color: white; cursor: pointer; }
-        th:hover { background-color: #004231; }
-        .filters { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; }
+        
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #005a43; color: white; }
+        .inativo { background-color: #ffe6e6; color: #999; }
+        
+        /* Botões de Ação */
+        .btn-edit { background-color: #ff9800; color: white; padding: 4px 8px; font-size: 12px; margin-right: 3px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-status { background-color: #2196F3; color: white; padding: 4px 8px; font-size: 12px; margin-right: 3px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-del { background-color: #f44336; color: white; padding: 4px 8px; font-size: 12px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-edit:hover { background-color: #e68a00; }
+        .btn-status:hover { background-color: #0b7dda; }
+        .btn-del:hover { background-color: #da190b; }
+        
+        .filters { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+
+        /* Modal de Edição */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #005a43; }
+        .modal-content .form-group { display: block; margin-bottom: 15px; }
+        .modal-content input { width: 95%; }
+        .modal-actions { text-align: right; margin-top: 20px; }
+        .btn-cancel { background-color: #bbb; color: white; margin-right: 5px; }
+        .btn-cancel:hover { background-color: #999; }
     </style>
 </head>
 <body>
@@ -30,18 +51,9 @@
     <div class="card">
         <h2>Adicionar Nova Atleta</h2>
         <form id="formJogadora">
-            <div class="form-group">
-                <label>Nome Desportivo</label>
-                <input type="text" id="nome_desportivo" required placeholder="Ex: Eva Lucas">
-            </div>
-            <div class="form-group">
-                <label>Nome Completo</label>
-                <input type="text" id="nome_completo" required placeholder="Ex: Eva Gil Mendes...">
-            </div>
-            <div class="form-group">
-                <label>Data Nascimento</label>
-                <input type="date" id="data_nascimento" required>
-            </div>
+            <div class="form-group"><label>Nome Desportivo</label><input type="text" id="nome_desportivo" required></div>
+            <div class="form-group"><label>Nome Completo</label><input type="text" id="nome_completo" required></div>
+            <div class="form-group"><label>Data Nascimento</label><input type="date" id="data_nascimento" required></div>
             <div class="form-group">
                 <label>Posição</label>
                 <select id="posicao">
@@ -55,17 +67,9 @@
                     <option value="universal">Universal</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Escalão Atual</label>
-                <input type="text" id="escalao_atual" placeholder="Ex: Juniores">
-            </div>
-            <div class="form-group">
-                <label>Nº Camisola</label>
-                <input type="number" id="numero_preferido" placeholder="Ex: 10">
-            </div>
-            <div class="form-group" style="vertical-align: bottom;">
-                <button type="submit">Gravar Jogadora</button>
-            </div>
+            <div class="form-group"><label>Escalão Atual</label><input type="text" id="escalao_atual"></div>
+            <div class="form-group"><label>Nº Camisola</label><input type="number" id="numero_preferido"></div>
+            <div class="form-group" style="vertical-align: bottom;"><button type="submit">Gravar Jogadora</button></div>
         </form>
     </div>
 
@@ -77,10 +81,19 @@
                 <input type="text" id="filtroNome" placeholder="Digita um nome..." oninput="carregarJogadoras()">
             </div>
             <div>
+                <label>Estado:</label>
+                <select id="filtroAtivo" onchange="carregarJogadoras()">
+                    <option value="todos">Todos os Estados</option>
+                    <option value="true">Apenas Ativas</option>
+                    <option value="false">Apenas Inativas</option>
+                </select>
+            </div>
+            <div>
                 <label>Ordenar por:</label>
                 <select id="ordenarPor" onchange="carregarJogadoras()">
                     <option value="nome_desportivo">Nome Desportivo</option>
                     <option value="data_nascimento">Data de Nasc.</option>
+                    <option value="golos_clube">Mais Golos</option>
                 </select>
             </div>
         </div>
@@ -89,11 +102,15 @@
             <thead>
                 <tr>
                     <th>Nome Desportivo</th>
-                    <th>Nome Completo</th>
-                    <th>Data Nascimento</th>
                     <th>Posição</th>
-                    <th>Escalão Atual</th>
+                    <th>Escalão</th>
                     <th>Nº</th>
+                    <th>Jogos</th>
+                    <th>Golos</th>
+                    <th>Golos Sofr.</th>
+                    <th>Assis.</th>
+                    <th>Estado</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabelaJogadoras">
@@ -102,58 +119,77 @@
     </div>
 </div>
 
+<div id="modalEditar" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">Editar Atleta</h3>
+        <input type="hidden" id="edit_id">
+        <div class="form-group"><label>Escalão Atual</label><input type="text" id="edit_escalao"></div>
+        <div class="form-group"><label>Jogos no Clube</label><input type="number" id="edit_jogos"></div>
+        <div class="form-group"><label>Golos Marcados</label><input type="number" id="edit_golos"></div>
+        <div class="form-group"><label>Golos Sofridos (GR)</label><input type="number" id="edit_sofridos"></div>
+        <div class="form-group"><label>Assistências</label><input type="number" id="edit_assistencias"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+            <button type="button" onclick="salvarEdicao()">Guardar Alterações</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // --- CONFIGURAÇÃO DO SUPABASE ---
-    // !!! AJUSTA APENAS ESTAS DUAS LINHAS !!!
     const SUPABASE_URL = 'https://lwehgnistggtekqbshur.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; // Coloca a tua completa aqui
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZWhnbmlzdGdndGVrcWJzaHVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTk2ODYsImV4cCI6MjA5NjU3NTY4Nn0.TFQMg1T8qbls8tt5tFedd7a78h5J6WeAZQPtgDGIN_M'; 
 
-    // Inicialização do cliente de forma segura
     const clientSupabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    // --- FUNÇÃO PARA CARREGAR E FILTRAR DADOS ---
+    // --- CARREGAR JOGADORAS ---
     async function carregarJogadoras() {
         if (!clientSupabase) return;
 
         const nomeFiltro = document.getElementById('filtroNome').value;
+        const estadoFiltro = document.getElementById('filtroAtivo').value;
         const ordenarPor = document.getElementById('ordenarPor').value;
 
         let query = clientSupabase.from('jogadoras').select('*');
 
-        if (nomeFiltro) {
-            query = query.ilike('nome_desportivo', `%${nomeFiltro}%`);
-        }
+        if (nomeFiltro) query = query.ilike('nome_desportivo', `%${nomeFiltro}%`);
+        if (estadoFiltro !== 'todos') query = query.eq('ativo', estadoFiltro === 'true');
 
-        query = query.order(ordenarPor, { ascending: true });
+        query = query.order(ordenarPor, { ascending: ordenarPor !== 'golos_clube' });
 
         const { data, error } = await query;
-
-        if (error) {
-            console.error('Erro ao buscar dados:', error);
-            return;
-        }
+        if (error) { console.error(error); return; }
 
         const tbody = document.getElementById('tabelaJogadoras');
         tbody.innerHTML = '';
 
-        data.forEach(jogadora => {
+        data.forEach(j => {
             const tr = document.createElement('tr');
+            if (!j.ativo) tr.className = 'inativo';
+
             tr.innerHTML = `
-                <td><strong>${jogadora.nome_desportivo}</strong></td>
-                <td>${jogadora.nome_completo}</td>
-                <td>${jogadora.data_nascimento}</td>
-                <td>${jogadora.posicao || '<i>Indefinida</i>'}</td>
-                <td>${jogadora.escalao_atual || '-'}</td>
-                <td>${jogadora.numero_preferido || '-'}</td>
+                <td><strong>${j.nome_desportivo}</strong><br><small style="color:#666">${j.nome_completo}</small></td>
+                <td>${j.posicao || '<i>Indefinida</i>'}</td>
+                <td>${j.escalao_atual || '-'}</td>
+                <td>${j.numero_preferido || '-'}</td>
+                <td>${j.jogos_clube}</td>
+                <td>${j.golos_clube}</td>
+                <td>${j.golos_sofridos}</td>
+                <td>${j.assistencias_clube}</td>
+                <td>${j.ativo ? '🟢 Ativa' : '🔴 Inativa'}</td>
+                <td>
+                    <button class="btn-edit" onclick="abrirModal(${j.id_jogadora}, '${j.nome_desportivo}', '${j.escalao_atual || ''}', ${j.jogos_clube}, ${j.golos_clube}, ${j.golos_sofridos}, ${j.assistencias_clube})">Editar</button>
+                    <button class="btn-status" onclick="alterarEstado(${j.id_jogadora}, ${j.ativo})">${j.ativo ? 'Desativar' : 'Ativar'}</button>
+                    <button class="btn-del" onclick="eliminarJogadora(${j.id_jogadora})">Eliminar</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // --- FUNÇÃO PARA INSERIR NOVA JOGADORA ---
+    // --- ADICIONAR JOGADORA ---
     document.getElementById('formJogadora').addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const numero = document.getElementById('numero_preferido').value;
         const posicaoEscolhida = document.getElementById('posicao').value;
 
@@ -167,18 +203,62 @@
         };
 
         const { error } = await clientSupabase.from('jogadoras').insert([novaJogadora]);
+        if (error) alert('Erro: ' + error.message);
+        else { document.getElementById('formJogadora').reset(); carregarJogadoras(); }
+    });
+
+    // --- ALTERAR ESTADO (ATIVAR/DESATIVAR) ---
+    async function alterarEstado(id, estadoAtual) {
+        const { error } = await clientSupabase.from('jogadoras').update({ ativo: !estadoAtual }).eq('id_jogadora', id);
+        if (error) alert(error.message);
+        else carregarJogadoras();
+    }
+
+    // --- ELIMINAR JOGADORA ---
+    async function eliminarJogadora(id) {
+        if (confirm('Tens a certeza que queres apagar permanentemente esta jogadora?')) {
+            const { error } = await clientSupabase.from('jogadoras').delete().eq('id_jogadora', id);
+            if (error) alert(error.message);
+            else carregarJogadoras();
+        }
+    }
+
+    // --- CONTROLO DO MODAL DE EDIÇÃO ---
+    function abrirModal(id, nome, escalao, jogos, golos, sofridos, assist) {
+        document.getElementById('modalEditar').style.display = 'block';
+        document.getElementById('modalTitulo').innerText = `Editar Atleta: ${nome}`;
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_escalao').value = escalao;
+        document.getElementById('edit_jogos').value = jogos;
+        document.getElementById('edit_golos').value = golos;
+        document.getElementById('edit_sofridos').value = sofridos;
+        document.getElementById('edit_assistencias').value = assist;
+    }
+
+    function fecharModal() {
+        document.getElementById('modalEditar').style.display = 'none';
+    }
+
+    async function salvarEdicao() {
+        const id = document.getElementById('edit_id').value;
+        
+        const { error } = await clientSupabase.from('jogadoras').update({
+            escalao_atual: document.getElementById('edit_escalao').value || null,
+            jogos_clube: parseInt(document.getElementById('edit_jogos').value) || 0,
+            golos_clube: parseInt(document.getElementById('edit_golos').value) || 0,
+            golos_sofridos: parseInt(document.getElementById('edit_sofridos').value) || 0,
+            assistencias_clube: parseInt(document.getElementById('edit_assistencias').value) || 0
+        }).eq('id_jogadora', id);
 
         if (error) {
-            alert('Erro ao guardar na base de dados: ' + error.message);
+            alert('Erro ao atualizar: ' + error.message);
         } else {
-            alert('Jogadora adicionada com sucesso!');
-            document.getElementById('formJogadora').reset();
-            carregarJogadoras(); 
+            fecharModal();
+            carregarJogadoras();
         }
-    });
+    }
 
     window.onload = carregarJogadoras;
 </script>
-
 </body>
 </html>
