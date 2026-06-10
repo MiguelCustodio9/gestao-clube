@@ -1037,21 +1037,27 @@
                 return;
             }
 
+            const atletaId = Number(id);
+            if (!Number.isInteger(atletaId) || atletaId <= 0) {
+                alert('ID da atleta inválido.');
+                return;
+            }
+
             try {
                 // Remover primeiro os vínculos que referenciam a atleta para evitar erros de FK.
-                const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_jogadora', id);
+                const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_jogadora', atletaId);
                 if (errorVinculos) {
-                    throw new Error('Não foi possível remover os vínculos desta atleta. ' + (errorVinculos.message || '')); 
+                    throw new Error('Não foi possível remover os vínculos desta atleta. ' + (errorVinculos.message || ''));
                 }
 
-                const { error: errorJogadora } = await dbClient.from('jogadoras').delete().eq('id_jogadora', id);
+                const { error: errorJogadora } = await dbClient.from('jogadoras').delete().eq('id_jogadora', atletaId);
                 if (errorJogadora) {
                     throw new Error('Não foi possível remover a atleta. ' + (errorJogadora.message || ''));
                 }
 
-                const target = eraAtiva ? '#tabelaAtivas tbody' : '#tabelaInativas tbody';
-                carregarSeccaoJogadoras(eraAtiva, target);
-                carregarVinculos();
+                await carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
+                await carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
+                await carregarVinculos();
             } catch (err) {
                 console.error('Erro ao eliminar atleta:', err);
                 alert(err.message || 'Erro ao remover a atleta. Verifique a consola para mais detalhes.');
@@ -1126,17 +1132,23 @@
                 return;
             }
 
+            const registroId = Number(id);
+            if (!Number.isInteger(registroId) || registroId <= 0) {
+                alert('ID inválido.');
+                return;
+            }
+
             try {
                 let pk;
                 if(tabela === 'treinadores') {
                     pk = 'id_treinador';
-                    const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_treinador', id);
+                    const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_treinador', registroId);
                     if (errorVinculos) {
                         throw new Error('Não foi possível remover os vínculos deste treinador. ' + (errorVinculos.message || ''));
                     }
                 } else if(tabela === 'jogadoras') {
                     pk = 'id_jogadora';
-                    const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_jogadora', id);
+                    const { error: errorVinculos } = await dbClient.from('vinculo_epocas').delete().eq('id_jogadora', registroId);
                     if (errorVinculos) {
                         throw new Error('Não foi possível remover os vínculos desta atleta. ' + (errorVinculos.message || ''));
                     }
@@ -1144,7 +1156,7 @@
                     pk = 'id_vinculo';
                 }
 
-                const { error } = await dbClient.from(tabela).delete().eq(pk, id);
+                const { error } = await dbClient.from(tabela).delete().eq(pk, registroId);
                 if (error) {
                     throw new Error('Não foi possível eliminar o registo. ' + (error.message || ''));
                 }
