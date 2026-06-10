@@ -695,15 +695,20 @@
         async function carregarTreinadores() {
             console.debug('carregarTreinadores chamado, dbClient?', !!dbClient);
             if(!dbClient) { console.error('carregarTreinadores: dbClient não inicializado'); return; }
-            const { data, error } = await dbClient.from('treinadores').select('*');
+            const { data, error } = await dbClient.from('treinadores').select('*').order('nome_desportivo');
             console.debug('carregarTreinadores resposta', { data, error });
-            if (error) { console.error('Erro ao buscar treinadores:', error); return; }
+            if (error) {
+                console.error('Erro ao buscar treinadores:', error);
+                estado.treinadores = [];
+                renderTabelaTreinadores(`Erro ao carregar treinadores: ${error.message || 'Verifique as permissões da tabela.'}`);
+                return;
+            }
             estado.treinadores = data || [];
             renderTabelaTreinadores();
             console.debug('treinadores carregados:', estado.treinadores.length);
         }
 
-        function renderTabelaTreinadores() {
+        function renderTabelaTreinadores(erroMensagem = '') {
             const filtro = document.getElementById('filtroTreinadores')?.value || '';
             const ordenacao = document.getElementById('ordenarTreinadores')?.value || 'nome_desportivo';
             const exibicao = filtrarESortear(estado.treinadores, filtro, ordenacao);
@@ -711,7 +716,7 @@
             if (!tbody) { console.error('renderTabelaTreinadores: elemento tbody #tabelaTreinadores não encontrado'); return; }
             tbody.innerHTML = '';
             if (!exibicao.length) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#555;">${erroMensagem || 'Nenhum resultado encontrado.'}</td></tr>`;
                 return;
             }
             exibicao.forEach(t => {
