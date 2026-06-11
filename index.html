@@ -596,6 +596,14 @@
             }).join('/');
         }
 
+        function formatarTitulo(texto) {
+            if (!texto) return '-';
+            return texto
+                .split(' ')
+                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase())
+                .join(' ');
+        }
+
         function formatarData(data) {
             if (!data) return '-';
             const d = new Date(data);
@@ -792,7 +800,7 @@
                     <td>${v.tipo}</td>
                     <td>${v.epoca}</td>
                     <td>${v.escalao_equipa}</td>
-                    <td>${v.funcao_treinador || '-'}</td>
+                    <td>${v.funcao_treinador ? formatarTitulo(v.funcao_treinador) : '-'}</td>
                     <td>
                         <div class="action-group">
                             <button class="btn-action btn-view" onclick="verVinculo('${dadosBase64}')">Ver</button>
@@ -946,7 +954,7 @@
             document.getElementById('vv_nome').value = v.nome || '-';
             document.getElementById('vv_epoca').value = v.epoca || '-';
             document.getElementById('vv_escalao_equipa').value = v.escalao_equipa || '-';
-            document.getElementById('vv_funcao_treinador').value = v.funcao_treinador || '-';
+            document.getElementById('vv_funcao_treinador').value = v.funcao_treinador ? formatarTitulo(v.funcao_treinador) : '-';
         }
 
         async function atualizarSelectParticipantesEdicao(selecionadoId = null) {
