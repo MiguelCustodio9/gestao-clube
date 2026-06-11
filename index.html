@@ -1318,12 +1318,14 @@
                 const jogos = parseIntNaoNegativo(document.getElementById('v_jogos').value, 'Jogos', true);
                 const golos = parseIntNaoNegativo(document.getElementById('v_golos').value, 'Golos', true);
                 const assistencias = parseIntNaoNegativo(document.getElementById('v_assistencias').value, 'Assistências', true);
+                const golos_sofridos = parseIntNaoNegativo(document.getElementById('v_golos_sofridos').value, 'Golos Sofridos', true);
 
                 const novoVinculo = {
                     epoca: document.getElementById('v_epoca').value,
                     escalao_equipa: document.getElementById('v_escalao').value,
                     jogos,
                     golos,
+                    golos_sofridos,
                     assistencias,
                     id_jogadora: tipo === 'jogadora' ? partId : null,
                     id_treinador: tipo === 'treinador' ? partId : null,
