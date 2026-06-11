@@ -1411,19 +1411,12 @@
             if (ejDataNasc) ejDataNasc.max = hoje;
             if (etDataNasc) etDataNasc.max = hoje;
 
-            // carregar todas as listas para popular o estado inicial
-            if (dbClient) {
-                carregarSeccaoJogadoras(true, '#tabelaAtivas tbody');
-                carregarSeccaoJogadoras(false, '#tabelaInativas tbody');
-                carregarTreinadores();
-                carregarVinculos();
-                atualizarSelectParticipantes();
-            } else {
+            if (!dbClient) {
                 console.error('Supabase client não inicializado. Verifique a inclusão do script do supabase e as chaves.');
             }
 
-            // manter a vista ativa por defeito
-            switchView('ativas', document.querySelector('.view-tab.active'));
+            prepararFormularioLogin();
+            mostrarLogin();
         };
     </script>
 </body>

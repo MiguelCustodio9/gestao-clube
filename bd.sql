@@ -38,6 +38,11 @@ CREATE TYPE public.tipo_perfil AS ENUM (
   'visualizador'
 );
 
+CREATE SEQUENCE IF NOT EXISTS public.usuarios_id_usuario_seq;
+CREATE SEQUENCE IF NOT EXISTS public.jogadoras_id_jogadora_seq;
+CREATE SEQUENCE IF NOT EXISTS public.treinadores_id_treinador_seq;
+CREATE SEQUENCE IF NOT EXISTS public.vinculo_epocas_id_vinculo_seq;
+
 CREATE TABLE public.usuarios (
   id_usuario integer NOT NULL DEFAULT nextval('usuarios_id_usuario_seq'::regclass),
   email text NOT NULL UNIQUE,
