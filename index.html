@@ -310,6 +310,7 @@
                     <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="v_escalao" required></div>
                     <div class="form-group"><label>Jogos</label><input type="number" id="v_jogos" value="0" min="0" step="1"></div>
                     <div class="form-group"><label>Golos</label><input type="number" id="v_golos" value="0" min="0" step="1"></div>
+                    <div class="form-group"><label>G. Sofridos</label><input type="number" id="v_golos_sofridos" value="0" min="0" step="1"></div>
                     <div class="form-group"><label>Assistências</label><input type="number" id="v_assistencias" value="0" min="0" step="1"></div>
                     <div class="form-group">
                         <label>Função (Apenas Staff)</label>
@@ -888,8 +889,8 @@
         async function carregarVinculos() {
             console.debug('carregarVinculos chamado, dbClient?', !!dbClient);
             if(!dbClient) { console.error('carregarVinculos: dbClient não inicializado'); return; }
-            const { data, error } = await dbClient.from('vinculo_epocas').select(`
-                id_vinculo, id_jogadora, id_treinador, epoca, escalao_equipa, jogos, golos, assistencias, funcao_treinador,
+                const { data, error } = await dbClient.from('vinculo_epocas').select(`
+                id_vinculo, id_jogadora, id_treinador, epoca, escalao_equipa, jogos, golos, golos_sofridos, assistencias, funcao_treinador,
                 jogadoras(nome_desportivo), treinadores(nome_desportivo)
             `);
             console.debug('carregarVinculos resposta', { data, error });
@@ -902,6 +903,7 @@
                 escalao_equipa: v.escalao_equipa,
                 jogos: v.jogos ?? 0,
                 golos: v.golos ?? 0,
+                golos_sofridos: v.golos_sofridos ?? 0,
                 assistencias: v.assistencias ?? 0,
                 funcao_treinador: v.funcao_treinador,
                 id_jogadora: v.id_jogadora || null,
@@ -914,7 +916,7 @@
 
         async function sincronizarTotaisPorVinculo() {
             if (!dbClient) return;
-            const { data, error } = await dbClient.from('vinculo_epocas').select('id_jogadora, jogos, golos, assistencias');
+            const { data, error } = await dbClient.from('vinculo_epocas').select('id_jogadora, jogos, golos, golos_sofridos, assistencias');
             if (error) {
                 console.error('Erro ao carregar vínculos para sincronizar totais:', error);
                 return;
@@ -925,9 +927,10 @@
                 if (!v.id_jogadora) return;
                 const id = Number(v.id_jogadora);
                 if (!Number.isInteger(id) || id <= 0) return;
-                totais[id] = totais[id] || { jogos: 0, golos: 0, assistencias: 0 };
+                totais[id] = totais[id] || { jogos: 0, golos: 0, golos_sofridos: 0, assistencias: 0 };
                 totais[id].jogos += Number(v.jogos) || 0;
                 totais[id].golos += Number(v.golos) || 0;
+                totais[id].golos_sofridos += Number(v.golos_sofridos) || 0;
                 totais[id].assistencias += Number(v.assistencias) || 0;
             });
 
@@ -939,10 +942,11 @@
 
             await Promise.all((atletas || []).map(async atleta => {
                 const id = Number(atleta.id_jogadora);
-                const total = totais[id] || { jogos: 0, golos: 0, assistencias: 0 };
+                const total = totais[id] || { jogos: 0, golos: 0, golos_sofridos: 0, assistencias: 0 };
                 const { error: updateError } = await dbClient.from('jogadoras').update({
                     jogos_clube: total.jogos,
                     golos_clube: total.golos,
+                    golos_sofridos: total.golos_sofridos,
                     assistencias_clube: total.assistencias
                 }).eq('id_jogadora', id);
                 if (updateError) {
