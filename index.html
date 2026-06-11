@@ -116,8 +116,8 @@
                 <h2>Login</h2>
                 <form id="formLogin" class="form-row" onsubmit="autenticarUsuario(event)">
                     <div class="form-group" style="flex: 1 1 100%;">
-                        <label>Email</label>
-                        <input type="email" id="login_email" required>
+                        <label>Nome de Utilizador</label>
+                        <input type="text" id="login_username" required>
                     </div>
                     <div class="form-group" style="flex: 1 1 100%;">
                         <label>Senha</label>
@@ -538,21 +538,21 @@
             usuarioAtual = usuario;
             document.querySelector('.topbar-actions').classList.add('logout-visible');
             document.getElementById('topbar-user').style.display = 'block';
-            document.getElementById('topbar-user').innerText = `Olá, ${usuario.nome || usuario.email}`;
+            document.getElementById('topbar-user').innerText = `Olá, ${usuario.nome || usuario.username}`;
             document.getElementById('login_error').style.display = 'none';
             switchView('ativas');
         }
 
         async function autenticarUsuario(event) {
             event.preventDefault();
-            const email = document.getElementById('login_email').value.trim();
+            const username = document.getElementById('login_username').value.trim();
             const senha = document.getElementById('login_senha').value;
             const errorEl = document.getElementById('login_error');
             errorEl.style.display = 'none';
             errorEl.innerText = '';
 
-            if (!email || !senha) {
-                errorEl.innerText = 'Por favor, preencha email e senha.';
+            if (!username || !senha) {
+                errorEl.innerText = 'Por favor, preencha nome de utilizador e senha.';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -562,7 +562,7 @@
                 return;
             }
 
-            const { data, error } = await dbClient.rpc('autenticar_usuario', { p_email: email, p_senha: senha });
+            const { data, error } = await dbClient.rpc('autenticar_usuario', { p_username: username, p_senha: senha });
             if (error) {
                 console.error('Erro de login:', error);
                 errorEl.innerText = 'Não foi possível autenticar. Verifique as credenciais.';
@@ -572,7 +572,7 @@
 
             const usuario = Array.isArray(data) ? data[0] : data;
             if (!usuario) {
-                errorEl.innerText = 'Email ou senha incorretos.';
+                errorEl.innerText = 'Nome de utilizador ou senha incorretos.';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -587,7 +587,7 @@
         }
 
         function prepararFormularioLogin() {
-            document.getElementById('login_email').value = '';
+            document.getElementById('login_username').value = '';
             document.getElementById('login_senha').value = '';
             document.getElementById('login_error').style.display = 'none';
             document.getElementById('login_error').innerText = '';

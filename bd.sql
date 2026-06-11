@@ -45,7 +45,7 @@ CREATE SEQUENCE IF NOT EXISTS public.vinculo_epocas_id_vinculo_seq;
 
 CREATE TABLE public.usuarios (
   id_usuario integer NOT NULL DEFAULT nextval('usuarios_id_usuario_seq'::regclass),
-  email text NOT NULL UNIQUE,
+  username text NOT NULL UNIQUE,
   nome character varying,
   perfil tipo_perfil DEFAULT 'gestor',
   senha_hash text NOT NULL,
@@ -54,34 +54,34 @@ CREATE TABLE public.usuarios (
   CONSTRAINT usuarios_pkey PRIMARY KEY (id_usuario)
 );
 
-CREATE FUNCTION public.autenticar_usuario(p_email text, p_senha text)
-RETURNS TABLE (id_usuario integer, email text, nome character varying, perfil tipo_perfil, ativo boolean)
+CREATE FUNCTION public.autenticar_usuario(p_username text, p_senha text)
+RETURNS TABLE (id_usuario integer, username text, nome character varying, perfil tipo_perfil, ativo boolean)
 LANGUAGE sql STABLE AS $$
-  SELECT id_usuario, email, nome, perfil, ativo
+  SELECT id_usuario, username, nome, perfil, ativo
   FROM public.usuarios
-  WHERE email = p_email
+  WHERE username = p_username
     AND ativo = true
     AND senha_hash = crypt(p_senha, senha_hash);
 $$;
 
-CREATE FUNCTION public.criar_usuario(p_email text, p_nome character varying, p_perfil tipo_perfil, p_senha text)
+CREATE FUNCTION public.criar_usuario(p_username text, p_nome character varying, p_perfil tipo_perfil, p_senha text)
 RETURNS integer
 LANGUAGE plpgsql VOLATILE AS $$
 DECLARE
     novo_id integer;
 BEGIN
-    INSERT INTO public.usuarios (email, nome, perfil, senha_hash)
-    VALUES (p_email, p_nome, p_perfil, crypt(p_senha, gen_salt('bf')))
+    INSERT INTO public.usuarios (username, nome, perfil, senha_hash)
+    VALUES (p_username, p_nome, p_perfil, crypt(p_senha, gen_salt('bf')))
     RETURNING id_usuario INTO novo_id;
     RETURN novo_id;
 END;
 $$;
 
 -- Exemplo de utilização direta no banco:
--- SELECT criar_usuario('admin@scpcb.pt', 'Administrador', 'admin', 'senha-segura');
+-- SELECT criar_usuario('admin', 'Administrador', 'admin', 'senha-segura');
 -- Ou use INSERT manual com hash:
--- INSERT INTO public.usuarios (email, nome, perfil, senha_hash)
--- VALUES ('admin@scpcb.pt', 'Administrador', 'admin', crypt('senha-segura', gen_salt('bf')));
+-- INSERT INTO public.usuarios (username, nome, perfil, senha_hash)
+-- VALUES ('admin', 'Administrador', 'admin', crypt('senha-segura', gen_salt('bf')));
 
 CREATE TABLE public.jogadoras (
   id_jogadora integer NOT NULL DEFAULT nextval('jogadoras_id_jogadora_seq'::regclass),
