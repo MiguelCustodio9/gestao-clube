@@ -64,7 +64,22 @@ LANGUAGE sql STABLE AS $$
     AND senha_hash = crypt(p_senha, senha_hash);
 $$;
 
--- Exemplo de utilizador inicial: substitua a senha por uma real.
+CREATE FUNCTION public.criar_usuario(p_email text, p_nome character varying, p_perfil tipo_perfil, p_senha text)
+RETURNS integer
+LANGUAGE plpgsql VOLATILE AS $$
+DECLARE
+    novo_id integer;
+BEGIN
+    INSERT INTO public.usuarios (email, nome, perfil, senha_hash)
+    VALUES (p_email, p_nome, p_perfil, crypt(p_senha, gen_salt('bf')))
+    RETURNING id_usuario INTO novo_id;
+    RETURN novo_id;
+END;
+$$;
+
+-- Exemplo de utilização direta no banco:
+-- SELECT criar_usuario('admin@scpcb.pt', 'Administrador', 'admin', 'senha-segura');
+-- Ou use INSERT manual com hash:
 -- INSERT INTO public.usuarios (email, nome, perfil, senha_hash)
 -- VALUES ('admin@scpcb.pt', 'Administrador', 'admin', crypt('senha-segura', gen_salt('bf')));
 
