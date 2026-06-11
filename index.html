@@ -35,11 +35,21 @@
         .view-section.active { display: block; }
         .auth-card { max-width: 520px; margin: 0 auto; }
         .auth-status { margin-top: 8px; color: #c5221f; font-size: 14px; display: none; }
-        .topbar-user { font-size: 14px; color: #0b4d33; font-weight: 700; }
-        /* logout button: hidden by default, shown when .logout-visible is present on .topbar or .topbar-actions */
-        .topbar button#btnLogout { display: none; }
-        .topbar.logout-visible button#btnLogout { display: inline-flex; }
-        .topbar-actions.logout-visible button#btnLogout { display: inline-flex; }
+        .topbar-user { font-size: 14px; color: #0b4d33; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+        /* small red logout button (hidden by default) */
+        #btnLogout { display: none; padding: 6px 10px; font-size: 13px; border-radius: 8px; background: #e53935; color: #fff; border: none; cursor: pointer; min-width: unset; height: auto; }
+        .topbar.logout-visible #btnLogout, .topbar-actions.logout-visible #btnLogout { display: inline-flex; }
+        #btnLogout:hover { filter: brightness(0.95); }
+
+        /* force active view tab to be green */
+        .topbar-actions .view-tab.active,
+        .topbar-actions .view-tab:active,
+        .topbar-actions .view-tab.active:focus {
+            background-color: var(--sporting-green) !important;
+            color: #fff !important;
+            border-color: var(--sporting-green) !important;
+            box-shadow: none !important;
+        }
         
         /* Cards e Grelhas */
         h1, h2 { color: var(--primary); margin-top: 0; font-weight: 700; }
@@ -101,7 +111,7 @@
                     <p class="topbar-subtitle">Painel de Gestão</p>
                     <h1 id="topbar-title" class="topbar-title">Atletas Ativas</h1>
                     <div id="topbar-user" class="topbar-user" style="display:none;"></div>
-                    <button id="btnLogout" class="btn btn-danger" type="button" onclick="logoutUsuario()" style="display:none; margin-left:12px;">Sair</button>
+                    <button id="btnLogout" class="small-logout" type="button" onclick="logoutUsuario()">Sair</button>
                 </div>
             </div>
             <div class="topbar-actions">
