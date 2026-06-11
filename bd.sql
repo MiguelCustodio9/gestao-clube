@@ -30,6 +30,39 @@ CREATE TYPE public.tipo_funcao AS ENUM (
   'coordenador da academia'
 );
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TYPE public.tipo_perfil AS ENUM (
+  'admin',
+  'gestor',
+  'visualizador'
+);
+
+CREATE TABLE public.usuarios (
+  id_usuario integer NOT NULL DEFAULT nextval('usuarios_id_usuario_seq'::regclass),
+  email text NOT NULL UNIQUE,
+  nome character varying,
+  perfil tipo_perfil DEFAULT 'gestor',
+  senha_hash text NOT NULL,
+  ativo boolean DEFAULT true,
+  criado_em timestamp with time zone DEFAULT now(),
+  CONSTRAINT usuarios_pkey PRIMARY KEY (id_usuario)
+);
+
+CREATE FUNCTION public.autenticar_usuario(p_email text, p_senha text)
+RETURNS TABLE (id_usuario integer, email text, nome character varying, perfil tipo_perfil, ativo boolean)
+LANGUAGE sql STABLE AS $$
+  SELECT id_usuario, email, nome, perfil, ativo
+  FROM public.usuarios
+  WHERE email = p_email
+    AND ativo = true
+    AND senha_hash = crypt(p_senha, senha_hash);
+$$;
+
+-- Exemplo de utilizador inicial: substitua a senha por uma real.
+-- INSERT INTO public.usuarios (email, nome, perfil, senha_hash)
+-- VALUES ('admin@scpcb.pt', 'Administrador', 'admin', crypt('senha-segura', gen_salt('bf')));
+
 CREATE TABLE public.jogadoras (
   id_jogadora integer NOT NULL DEFAULT nextval('jogadoras_id_jogadora_seq'::regclass),
   nome_desportivo character varying NOT NULL,

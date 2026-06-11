@@ -29,9 +29,15 @@
         .topbar-title { margin: 0; font-size: 24px; font-weight: 800; color: #0b4d33; }
         .topbar-subtitle { margin: 0; color: #5f7a6f; font-size: 14px; }
         .topbar-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .topbar-actions:not(.logout-visible) .view-tab { display: none; }
         .topbar-actions button { min-width: 140px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
+        .auth-card { max-width: 520px; margin: 0 auto; }
+        .auth-status { margin-top: 8px; color: #c5221f; font-size: 14px; display: none; }
+        .topbar-user { font-size: 14px; color: #0b4d33; font-weight: 700; }
+        .topbar-actions.logout-visible button#btnLogout { display: inline-flex; }
+        .topbar-actions button#btnLogout { display: none; }
         
         /* Cards e Grelhas */
         h1, h2 { color: var(--primary); margin-top: 0; font-weight: 700; }
@@ -92,6 +98,7 @@
                 <div>
                     <p class="topbar-subtitle">Painel de Gestão</p>
                     <h1 id="topbar-title" class="topbar-title">Atletas Ativas</h1>
+                    <div id="topbar-user" class="topbar-user" style="display:none;"></div>
                 </div>
             </div>
             <div class="topbar-actions">
@@ -100,10 +107,31 @@
                 <button class="btn btn-secondary view-tab" onclick="switchView('treinadores', this)">Treinadores</button>
                 <button class="btn btn-secondary view-tab" onclick="switchView('vinculos', this)">Vínculos</button>
                 <button class="btn btn-secondary view-tab" onclick="switchView('estatisticas', this)">Estatísticas</button>
+                <button id="btnLogout" class="btn btn-danger" type="button" onclick="logoutUsuario()">Sair</button>
             </div>
         </div>
 
-        <section id="section-ativas" class="view-section active">
+        <section id="section-login" class="view-section active">
+            <div class="card auth-card">
+                <h2>Login</h2>
+                <form id="formLogin" class="form-row" onsubmit="autenticarUsuario(event)">
+                    <div class="form-group" style="flex: 1 1 100%;">
+                        <label>Email</label>
+                        <input type="email" id="login_email" required>
+                    </div>
+                    <div class="form-group" style="flex: 1 1 100%;">
+                        <label>Senha</label>
+                        <input type="password" id="login_senha" required>
+                    </div>
+                    <div class="form-group" style="flex: 1 1 100%; text-align: right;">
+                        <button type="submit">Entrar</button>
+                    </div>
+                    <div id="login_error" class="auth-status"></div>
+                </form>
+            </div>
+        </section>
+
+        <section id="section-ativas" class="view-section">
             <div class="card">
                 <h2>Adicionar Nova Atleta</h2>
                 <form id="formJogadora" class="form-row">
@@ -488,13 +516,86 @@
         const KEY_SUPABASE = 'sb_publishable_Dk0jfkK9_BDhMBej6NXb0w_3cdVJgt9'; 
         const dbClient = window.supabase ? window.supabase.createClient(URL_SUPABASE, KEY_SUPABASE) : null;
 
-        let visaoAtual = 'ativas';
+        let visaoAtual = 'login';
+        let usuarioAtual = null;
         const estado = {
             atletasAtivas: [],
             atletasInativas: [],
             treinadores: [],
             vinculos: []
         };
+
+        function mostrarLogin() {
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('section-login').classList.add('active');
+            document.getElementById('topbar-title').innerText = 'Login';
+            document.querySelector('.topbar-actions').classList.remove('logout-visible');
+            document.getElementById('topbar-user').style.display = 'none';
+            visaoAtual = 'login';
+        }
+
+        function mostrarApp(usuario) {
+            usuarioAtual = usuario;
+            document.querySelector('.topbar-actions').classList.add('logout-visible');
+            document.getElementById('topbar-user').style.display = 'block';
+            document.getElementById('topbar-user').innerText = `Olá, ${usuario.nome || usuario.email}`;
+            document.getElementById('login_error').style.display = 'none';
+            switchView('ativas');
+        }
+
+        async function autenticarUsuario(event) {
+            event.preventDefault();
+            const email = document.getElementById('login_email').value.trim();
+            const senha = document.getElementById('login_senha').value;
+            const errorEl = document.getElementById('login_error');
+            errorEl.style.display = 'none';
+            errorEl.innerText = '';
+
+            if (!email || !senha) {
+                errorEl.innerText = 'Por favor, preencha email e senha.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!dbClient) {
+                errorEl.innerText = 'Erro de configuração do Supabase. Verifique a conexão.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const { data, error } = await dbClient.rpc('autenticar_usuario', { p_email: email, p_senha: senha });
+            if (error) {
+                console.error('Erro de login:', error);
+                errorEl.innerText = 'Não foi possível autenticar. Verifique as credenciais.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const usuario = Array.isArray(data) ? data[0] : data;
+            if (!usuario) {
+                errorEl.innerText = 'Email ou senha incorretos.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            mostrarApp(usuario);
+        }
+
+        function logoutUsuario() {
+            usuarioAtual = null;
+            prepararFormularioLogin();
+            mostrarLogin();
+        }
+
+        function prepararFormularioLogin() {
+            document.getElementById('login_email').value = '';
+            document.getElementById('login_senha').value = '';
+            document.getElementById('login_error').style.display = 'none';
+            document.getElementById('login_error').innerText = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            prepararFormularioLogin();
+        });
 
         function ordenarDados(a, b, campo) {
             const valorA = a[campo] ?? '';
