@@ -30,8 +30,6 @@ CREATE TYPE public.tipo_funcao AS ENUM (
   'coordenador da academia'
 );
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TYPE public.tipo_perfil AS ENUM (
   'admin',
   'gestor',
@@ -48,7 +46,7 @@ CREATE TABLE public.usuarios (
   username text NOT NULL UNIQUE,
   nome character varying,
   perfil tipo_perfil DEFAULT 'gestor',
-  senha_hash text NOT NULL,
+  senha text NOT NULL,
   ativo boolean DEFAULT true,
   criado_em timestamp with time zone DEFAULT now(),
   CONSTRAINT usuarios_pkey PRIMARY KEY (id_usuario)
@@ -61,7 +59,7 @@ LANGUAGE sql STABLE AS $$
   FROM public.usuarios
   WHERE username = p_username
     AND ativo = true
-    AND senha_hash = crypt(p_senha, senha_hash);
+    AND senha = p_senha;
 $$;
 
 CREATE FUNCTION public.criar_usuario(p_username text, p_nome character varying, p_perfil tipo_perfil, p_senha text)
@@ -70,8 +68,8 @@ LANGUAGE plpgsql VOLATILE AS $$
 DECLARE
     novo_id integer;
 BEGIN
-    INSERT INTO public.usuarios (username, nome, perfil, senha_hash)
-    VALUES (p_username, p_nome, p_perfil, crypt(p_senha, gen_salt('bf')))
+    INSERT INTO public.usuarios (username, nome, perfil, senha)
+    VALUES (p_username, p_nome, p_perfil, p_senha)
     RETURNING id_usuario INTO novo_id;
     RETURN novo_id;
 END;
@@ -79,9 +77,9 @@ $$;
 
 -- Exemplo de utilização direta no banco:
 -- SELECT criar_usuario('admin', 'Administrador', 'admin', 'senha-segura');
--- Ou use INSERT manual com hash:
--- INSERT INTO public.usuarios (username, nome, perfil, senha_hash)
--- VALUES ('admin', 'Administrador', 'admin', crypt('senha-segura', gen_salt('bf')));
+-- Ou use INSERT manual:
+-- INSERT INTO public.usuarios (username, nome, perfil, senha)
+-- VALUES ('admin', 'Administrador', 'admin', 'senha-segura');
 
 CREATE TABLE public.jogadoras (
   id_jogadora integer NOT NULL DEFAULT nextval('jogadoras_id_jogadora_seq'::regclass),
