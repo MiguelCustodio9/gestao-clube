@@ -1,14 +1,43 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TYPE public.tipo_posicao AS ENUM (
+  'guarda redes',
+  'fixo',
+  'fixo/ala',
+  'fixo/pivot',
+  'ala',
+  'ala/pivot',
+  'pivot',
+  'universal'
+);
+
+CREATE TYPE public.tipo_pe AS ENUM (
+  'Direito',
+  'Esquerdo',
+  'Ambidextro'
+);
+
+CREATE TYPE public.tipo_funcao AS ENUM (
+  'treinador principal',
+  'treinador adjunto',
+  'treinador de GR',
+  'delegado',
+  'fisioterapeuta',
+  'médico',
+  'massagista',
+  'enfermeiro',
+  'coordenador da academia'
+);
+
 CREATE TABLE public.jogadoras (
   id_jogadora integer NOT NULL DEFAULT nextval('jogadoras_id_jogadora_seq'::regclass),
   nome_desportivo character varying NOT NULL,
   nome_completo character varying NOT NULL,
   data_nascimento date NOT NULL,
   nacionalidade character varying DEFAULT 'Portuguesa'::character varying,
-  posicao USER-DEFINED,
-  pe_preferencial USER-DEFINED,
+  posicao tipo_posicao,
+  pe_preferencial tipo_pe,
   numero_preferido integer,
   clube_anterior character varying,
   primeira_epoca character varying,
@@ -37,7 +66,10 @@ CREATE TABLE public.vinculo_epocas (
   id_treinador integer,
   epoca character varying NOT NULL,
   escalao_equipa character varying NOT NULL,
-  funcao_treinador USER-DEFINED,
+  jogos integer DEFAULT 0,
+  golos integer DEFAULT 0,
+  assistencias integer DEFAULT 0,
+  funcao_treinador tipo_funcao,
   CONSTRAINT vinculo_epocas_pkey PRIMARY KEY (id_vinculo),
   CONSTRAINT vinculo_epocas_id_jogadora_fkey FOREIGN KEY (id_jogadora) REFERENCES public.jogadoras(id_jogadora),
   CONSTRAINT vinculo_epocas_id_treinador_fkey FOREIGN KEY (id_treinador) REFERENCES public.treinadores(id_treinador)

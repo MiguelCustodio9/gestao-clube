@@ -116,8 +116,9 @@
                         <select id="j_posicao">
                             <option value="">-- Selecione --</option>
                             <option value="guarda redes">Guarda Redes</option>
-                            <option value="fixo/ala">Fixo/Ala</option>
                             <option value="fixo">Fixo</option>
+                            <option value="fixo/ala">Fixo/Ala</option>
+                            <option value="fixo/pivot">Fixo/Pivot</option>
                             <option value="ala">Ala</option>
                             <option value="ala/pivot">Ala/Pivot</option>
                             <option value="pivot">Pivot</option>
@@ -269,6 +270,9 @@
                     <div class="form-group"><label>Participante</label><select id="v_participante" required></select></div>
                     <div class="form-group"><label>Época</label><input type="text" id="v_epoca" required></div>
                     <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="v_escalao" required></div>
+                    <div class="form-group"><label>Jogos</label><input type="number" id="v_jogos" value="0" min="0" step="1"></div>
+                    <div class="form-group"><label>Golos</label><input type="number" id="v_golos" value="0" min="0" step="1"></div>
+                    <div class="form-group"><label>Assistências</label><input type="number" id="v_assistencias" value="0" min="0" step="1"></div>
                     <div class="form-group">
                         <label>Função (Apenas Staff)</label>
                         <select id="v_funcao">
@@ -302,7 +306,7 @@
                 </div>
                 <table id="tabelaVinculos">
                     <thead>
-                        <tr><th>Nome</th><th>Tipo</th><th>Época</th><th>Escalão Equipa</th><th>Função Técnico</th><th>Ações</th></tr>
+                        <tr><th>Nome</th><th>Tipo</th><th>Época</th><th>Escalão Equipa</th><th>Jogos</th><th>Golos</th><th>Assist.</th><th>Função Técnico</th><th>Ações</th></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -338,8 +342,9 @@
                 <select id="ej_posicao">
                     <option value="">-- Selecione --</option>
                     <option value="guarda redes">Guarda Redes</option>
-                    <option value="fixo/ala">Fixo/Ala</option>
                     <option value="fixo">Fixo</option>
+                    <option value="fixo/ala">Fixo/Ala</option>
+                    <option value="fixo/pivot">Fixo/Pivot</option>
                     <option value="ala">Ala</option>
                     <option value="ala/pivot">Ala/Pivot</option>
                     <option value="pivot">Pivot</option>
@@ -434,6 +439,9 @@
             <div class="form-group"><label>Nome</label><input type="text" id="vv_nome" readonly></div>
             <div class="form-group"><label>Época</label><input type="text" id="vv_epoca" readonly></div>
             <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="vv_escalao_equipa" readonly></div>
+            <div class="form-group"><label>Jogos</label><input type="text" id="vv_jogos" readonly></div>
+            <div class="form-group"><label>Golos</label><input type="text" id="vv_golos" readonly></div>
+            <div class="form-group"><label>Assistências</label><input type="text" id="vv_assistencias" readonly></div>
             <div class="form-group"><label>Função Técnico</label><input type="text" id="vv_funcao_treinador" readonly></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Fechar</button>
@@ -455,6 +463,9 @@
             <div class="form-group"><label>Participante</label><select id="ev_participante" required></select></div>
             <div class="form-group"><label>Época</label><input type="text" id="ev_epoca" required></div>
             <div class="form-group"><label>Escalão da Equipa</label><input type="text" id="ev_escalao" required></div>
+            <div class="form-group"><label>Jogos</label><input type="number" id="ev_jogos" value="0" min="0" step="1"></div>
+            <div class="form-group"><label>Golos</label><input type="number" id="ev_golos" value="0" min="0" step="1"></div>
+            <div class="form-group"><label>Assistências</label><input type="number" id="ev_assistencias" value="0" min="0" step="1"></div>
             <div class="form-group"><label>Função (Apenas Staff)</label>
                 <select id="ev_funcao">
                     <option value="">-- Não se aplica --</option>
@@ -502,7 +513,7 @@
 
             // Ordenação customizada para posições
             if (campo === 'posicao') {
-                const ordemPos = ['guarda redes', 'fixo', 'fixo/ala', 'ala', 'ala/pivot', 'pivot', 'universal'];
+                const ordemPos = ['guarda redes', 'fixo', 'fixo/ala', 'fixo/pivot', 'ala', 'ala/pivot', 'pivot', 'universal'];
                 const va = String(valorA || '').toLowerCase().trim();
                 const vb = String(valorB || '').toLowerCase().trim();
                 const ia = ordemPos.indexOf(va);
@@ -762,7 +773,7 @@
             console.debug('carregarVinculos chamado, dbClient?', !!dbClient);
             if(!dbClient) { console.error('carregarVinculos: dbClient não inicializado'); return; }
             const { data, error } = await dbClient.from('vinculo_epocas').select(`
-                id_vinculo, id_jogadora, id_treinador, epoca, escalao_equipa, funcao_treinador,
+                id_vinculo, id_jogadora, id_treinador, epoca, escalao_equipa, jogos, golos, assistencias, funcao_treinador,
                 jogadoras(nome_desportivo), treinadores(nome_desportivo)
             `);
             console.debug('carregarVinculos resposta', { data, error });
@@ -773,12 +784,55 @@
                 tipo: v.jogadoras ? 'Jogadora' : 'Staff Técnico',
                 epoca: v.epoca,
                 escalao_equipa: v.escalao_equipa,
+                jogos: v.jogos ?? 0,
+                golos: v.golos ?? 0,
+                assistencias: v.assistencias ?? 0,
                 funcao_treinador: v.funcao_treinador,
                 id_jogadora: v.id_jogadora || null,
                 id_treinador: v.id_treinador || null
             }));
             renderTabelaVinculos();
+            await sincronizarTotaisPorVinculo();
             console.debug('vínculos carregados:', estado.vinculos.length);
+        }
+
+        async function sincronizarTotaisPorVinculo() {
+            if (!dbClient) return;
+            const { data, error } = await dbClient.from('vinculo_epocas').select('id_jogadora, jogos, golos, assistencias');
+            if (error) {
+                console.error('Erro ao carregar vínculos para sincronizar totais:', error);
+                return;
+            }
+
+            const totais = {};
+            (data || []).forEach(v => {
+                if (!v.id_jogadora) return;
+                const id = Number(v.id_jogadora);
+                if (!Number.isInteger(id) || id <= 0) return;
+                totais[id] = totais[id] || { jogos: 0, golos: 0, assistencias: 0 };
+                totais[id].jogos += Number(v.jogos) || 0;
+                totais[id].golos += Number(v.golos) || 0;
+                totais[id].assistencias += Number(v.assistencias) || 0;
+            });
+
+            const { data: atletas, error: errorAtletas } = await dbClient.from('jogadoras').select('id_jogadora');
+            if (errorAtletas) {
+                console.error('Erro ao carregar atletas para sincronizar totais:', errorAtletas);
+                return;
+            }
+
+            await Promise.all((atletas || []).map(async atleta => {
+                const id = Number(atleta.id_jogadora);
+                const total = totais[id] || { jogos: 0, golos: 0, assistencias: 0 };
+                const { error: updateError } = await dbClient.from('jogadoras').update({
+                    jogos_clube: total.jogos,
+                    golos_clube: total.golos,
+                    assistencias_clube: total.assistencias
+                }).eq('id_jogadora', id);
+                if (updateError) {
+                    console.error(`Erro ao sincronizar totais da atleta ${id}:`, updateError);
+                }
+            }));
         }
 
         function renderTabelaVinculos() {
@@ -789,7 +843,7 @@
             if (!tbody) { console.error('renderTabelaVinculos: elemento tbody #tabelaVinculos não encontrado'); return; }
             tbody.innerHTML = '';
             if (!exibicao.length) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#555;">Nenhum resultado encontrado.</td></tr>`;
                 return;
             }
             exibicao.forEach(v => {
@@ -800,6 +854,9 @@
                     <td>${v.tipo}</td>
                     <td>${v.epoca}</td>
                     <td>${v.escalao_equipa}</td>
+                    <td>${v.jogos}</td>
+                    <td>${v.golos}</td>
+                    <td>${v.assistencias}</td>
                     <td>${v.funcao_treinador ? formatarTitulo(v.funcao_treinador) : '-'}</td>
                     <td>
                         <div class="action-group">
@@ -954,6 +1011,9 @@
             document.getElementById('vv_nome').value = v.nome || '-';
             document.getElementById('vv_epoca').value = v.epoca || '-';
             document.getElementById('vv_escalao_equipa').value = v.escalao_equipa || '-';
+            document.getElementById('vv_jogos').value = v.jogos != null ? v.jogos : 0;
+            document.getElementById('vv_golos').value = v.golos != null ? v.golos : 0;
+            document.getElementById('vv_assistencias').value = v.assistencias != null ? v.assistencias : 0;
             document.getElementById('vv_funcao_treinador').value = v.funcao_treinador ? formatarTitulo(v.funcao_treinador) : '-';
         }
 
@@ -983,6 +1043,9 @@
             document.getElementById('ev_tipo').value = v.tipo === 'Staff Técnico' ? 'treinador' : 'jogadora';
             document.getElementById('ev_epoca').value = v.epoca || '';
             document.getElementById('ev_escalao').value = v.escalao_equipa || '';
+            document.getElementById('ev_jogos').value = v.jogos != null ? v.jogos : 0;
+            document.getElementById('ev_golos').value = v.golos != null ? v.golos : 0;
+            document.getElementById('ev_assistencias').value = v.assistencias != null ? v.assistencias : 0;
             document.getElementById('ev_funcao').value = v.funcao_treinador || '';
             await atualizarSelectParticipantesEdicao(v.tipo === 'Staff Técnico' ? v.id_treinador : v.id_jogadora);
         }
@@ -991,15 +1054,26 @@
             const id = document.getElementById('ev_id').value;
             const tipo = document.getElementById('ev_tipo').value;
             const participante = document.getElementById('ev_participante').value;
-            await dbClient.from('vinculo_epocas').update({
-                epoca: document.getElementById('ev_epoca').value,
-                escalao_equipa: document.getElementById('ev_escalao').value,
-                id_jogadora: tipo === 'jogadora' ? participante : null,
-                id_treinador: tipo === 'treinador' ? participante : null,
-                funcao_treinador: tipo === 'treinador' ? document.getElementById('ev_funcao').value || null : null
-            }).eq('id_vinculo', id);
-            fecharModais();
-            carregarVinculos();
+            try {
+                const jogos = parseIntNaoNegativo(document.getElementById('ev_jogos').value, 'Jogos', true);
+                const golos = parseIntNaoNegativo(document.getElementById('ev_golos').value, 'Golos', true);
+                const assistencias = parseIntNaoNegativo(document.getElementById('ev_assistencias').value, 'Assistências', true);
+
+                await dbClient.from('vinculo_epocas').update({
+                    epoca: document.getElementById('ev_epoca').value,
+                    escalao_equipa: document.getElementById('ev_escalao').value,
+                    jogos,
+                    golos,
+                    assistencias,
+                    id_jogadora: tipo === 'jogadora' ? participante : null,
+                    id_treinador: tipo === 'treinador' ? participante : null,
+                    funcao_treinador: tipo === 'treinador' ? document.getElementById('ev_funcao').value || null : null
+                }).eq('id_vinculo', id);
+                fecharModais();
+                await carregarVinculos();
+            } catch (err) {
+                alert(err.message || 'Erro ao atualizar vínculo.');
+            }
         }
 
         async function salvarEdicaoJogadora() {
@@ -1129,17 +1203,27 @@
             e.preventDefault();
             const tipo = document.getElementById('v_tipo').value;
             const partId = document.getElementById('v_participante').value;
-            
-            const novoVinculo = {
-                epoca: document.getElementById('v_epoca').value,
-                escalao_equipa: document.getElementById('v_escalao').value,
-                id_jogadora: tipo === 'jogadora' ? partId : null,
-                id_treinador: tipo === 'treinador' ? partId : null,
-                funcao_treinador: tipo === 'treinador' ? document.getElementById('v_funcao').value : null
-            };
-            await dbClient.from('vinculo_epocas').insert([novoVinculo]);
-            document.getElementById('formVinculo').reset();
-            carregarVinculos();
+            try {
+                const jogos = parseIntNaoNegativo(document.getElementById('v_jogos').value, 'Jogos', true);
+                const golos = parseIntNaoNegativo(document.getElementById('v_golos').value, 'Golos', true);
+                const assistencias = parseIntNaoNegativo(document.getElementById('v_assistencias').value, 'Assistências', true);
+
+                const novoVinculo = {
+                    epoca: document.getElementById('v_epoca').value,
+                    escalao_equipa: document.getElementById('v_escalao').value,
+                    jogos,
+                    golos,
+                    assistencias,
+                    id_jogadora: tipo === 'jogadora' ? partId : null,
+                    id_treinador: tipo === 'treinador' ? partId : null,
+                    funcao_treinador: tipo === 'treinador' ? document.getElementById('v_funcao').value : null
+                };
+                await dbClient.from('vinculo_epocas').insert([novoVinculo]);
+                document.getElementById('formVinculo').reset();
+                await carregarVinculos();
+            } catch (err) {
+                alert(err.message || 'Erro ao criar vínculo.');
+            }
         });
 
         async function eliminarRegistoGenerico(tabela, id, callback) {
