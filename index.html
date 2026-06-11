@@ -784,18 +784,21 @@
             exibicao.forEach(j => {
                 const tr = document.createElement('tr');
                 if(!j.ativo) tr.className = 'inativo-row';
-                
+
                 const dadosBase64 = btoa(encodeURIComponent(JSON.stringify(j)));
+
+                // Considera-se 'staff' quando não existe posição registada
+                const isStaff = !j.posicao || String(j.posicao).trim() === '';
 
                 tr.innerHTML = `
                     <td><strong>${j.nome_desportivo}</strong><br><small style="color:#777">${j.nome_completo}</small></td>
                     <td>${formatarPosicao(j.posicao)}</td>
                     <td>${j.escalao_etario || '-'}</td>
                     <td>${formatarData(j.data_nascimento)}</td>
-                    <td>${j.jogos_clube || 0}</td>
-                    <td>${j.golos_clube || 0}</td>
-                    <td>${j.golos_sofridos || 0}</td>
-                    <td>${j.assistencias_clube || 0}</td>
+                    <td>${isStaff ? '-' : (j.jogos_clube || 0)}</td>
+                    <td>${isStaff ? '-' : (j.golos_clube || 0)}</td>
+                    <td>${isStaff ? '-' : (j.golos_sofridos || 0)}</td>
+                    <td>${isStaff ? '-' : (j.assistencias_clube || 0)}</td>
                     <td><span class="badge ${j.ativo ? 'badge-ativa' : 'badge-inativa'}">${j.ativo ? '● Ativa' : '● Inativa'}</span></td>
                     <td>
                         <div class="action-group">
