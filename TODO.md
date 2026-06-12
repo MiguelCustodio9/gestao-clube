@@ -1,18 +1,14 @@
-# TODO - Estatísticas: Nacionalidades & Rankings
+# TODO - Estatísticas por Plantel/Época + Histórico (zerozero.pt)
 
-- [x] Atualizar `index.html` adicionando Chart.js e containers HTML para:
+## Planeado
+- [x] 1) Criar UI dentro da view `estatisticas`: menu/filtragem por **Época** e **Escalão** (traquinas/iniciadas/juniores/seniores)
+- [x] 2) Implementar rankings por plantel e época: **Jogos / Golos / Assistências** agregando via `vinculo_epocas`
+- [x] 3) Atualizar modal `Ver Atleta` para mostrar **histórico por épocas** do atleta (busca `vinculo_epocas` por `id_jogadora`)
 
-  - [ ] gráfico de barras por nacionalidades (relativo)
-  - [ ] ranking Top 5 por jogos, golos e assistências
-- [ ] Implementar helpers JS para:
-  - [ ] normalizar nacionalidade (ex: vazio -> "Desconhecida")
-  - [ ] ordenar/limitar Top 5
-- [ ] Atualizar `calcularEstatisticas()` para:
-  - [ ] calcular percentagens por nacionalidade com base em `ativo=true`
-  - [ ] calcular rankings por `jogos_clube`, `golos_clube`, `assistencias_clube`
-- [ ] Renderizar o gráfico e rankings ao entrar na view `estatisticas`
-- [ ] Validar no browser:
-  - [x] gráfico aparece
-  - [x] rankings aparecem com nomes e valores
-
+- [ ] 4) Ajustar estatísticas gerais:
+  - [ ] 4.1) Gráfico nacionalidades de **todas** as atletas
+  - [ ] 4.2) Gráfico posições de **ativas** e de **todas**
+  - [ ] 4.3) Média de idades **apenas ativas**
+- [ ] 5) Desenhar novos gráficos com Chart.js e ligar à função `calcularEstatisticas()`
+- [ ] 6) Testar no browser: filtros, rankings, modal histórico e gráficos
 

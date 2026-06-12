@@ -392,7 +392,52 @@
                     </div>
                 </div>
             </div>
+
+            <!-- NOVO: Plantel por época + escalão -->
+            <div class="card" style="margin-top:20px;">
+                <h2 style="margin-bottom:10px;">Plantéis por Época e Escalão</h2>
+                <div class="form-row" style="margin-bottom:12px; align-items:center;">
+                    <div class="form-group">
+                        <label>Época</label>
+                        <select id="f_epoca_plantel" onchange="atualizarPlantelPorEpocaEScalao()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Escalão</label>
+                        <select id="f_escalao_plantel" onchange="atualizarPlantelPorEpocaEScalao()">
+                            <option value="traquinas">Traquinas</option>
+                            <option value="iniciadas">Iniciadas</option>
+                            <option value="juniores">Juniores</option>
+                            <option value="seniores">Seniores</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>&nbsp;</label>
+                        <button type="button" onclick="atualizarPlantelPorEpocaEScalao()">Atualizar</button>
+                    </div>
+                </div>
+
+                <div class="stat-card" style="text-align:left; border-left-color:#0e603f; margin-bottom:16px;">
+                    <h3 style="margin-bottom:8px;">Ranking do Plantel Selecionado</h3>
+                    <div style="color:#2c3d34; font-weight:700;" id="lbl_plantel_selecionado">-</div>
+                </div>
+
+                <div class="grid-stats" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                    <div class="stat-card" style="text-align:left; border-left-color:#00a650;">
+                        <h3 style="margin-bottom:12px;">Jogos</h3>
+                        <div id="rank_plantel_jogos"></div>
+                    </div>
+                    <div class="stat-card" style="text-align:left; border-left-color:#e91e63;">
+                        <h3 style="margin-bottom:12px;">Golos</h3>
+                        <div id="rank_plantel_golos"></div>
+                    </div>
+                    <div class="stat-card" style="text-align:left; border-left-color:#9c27b0;">
+                        <h3 style="margin-bottom:12px;">Assistências</h3>
+                        <div id="rank_plantel_assistencias"></div>
+                    </div>
+                </div>
+            </div>
         </section>
+
 
     </main>
 
@@ -460,11 +505,19 @@
             <div class="form-group"><label>Golos Sofridos</label><input type="text" id="vj_sofridos" readonly></div>
             <div class="form-group"><label>Assistências</label><input type="text" id="vj_assist" readonly></div>
             <div class="form-group"><label>Ativa</label><input type="text" id="vj_ativo" readonly></div>
+
+            <hr>
+            <h4 style="margin:10px 0 14px; color: #0e603f;">Histórico no Clube por Época</h4>
+            <div style="max-height: 320px; overflow:auto; padding-right: 6px;">
+                <div id="vj_historico_epocas">Carregando...</div>
+            </div>
+
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="fecharModais()" style="background:#bbb;">Fechar</button>
             </div>
         </div>
     </div>
+
 
     <div id="modalVerTreinador" class="modal">
         <div class="modal-content">
@@ -1075,7 +1128,11 @@
             document.getElementById('vj_sofridos').value = j.golos_sofridos || 0;
             document.getElementById('vj_assist').value = j.assistencias_clube || 0;
             document.getElementById('vj_ativo').value = j.ativo ? 'Sim' : 'Não';
+
+            // Histórico por época
+            carregarHistoricoJogadora(j.id_jogadora);
         }
+
 
         function abrirModalJogadora(base64, origem) {
             const j = JSON.parse(decodeURIComponent(atob(base64)));
@@ -1189,7 +1246,73 @@
             await atualizarSelectParticipantesEdicao(v.tipo === 'Staff Técnico' ? v.id_treinador : v.id_jogadora);
         }
 
+        async function carregarHistoricoJogadora(idJogadora) {
+            if (!dbClient) return;
+            const el = document.getElementById('vj_historico_epocas');
+            if (!el) return;
+
+            if (!idJogadora) {
+                el.innerHTML = 'Sem histórico';
+                return;
+            }
+
+            el.innerHTML = 'Carregando...';
+
+            const { data, error } = await dbClient.from('vinculo_epocas').select(
+                'epoca, escalao_equipa, jogos, golos, assistencias, golos_sofridos'
+            ).eq('id_jogadora', idJogadora);
+
+            if (error) {
+                console.error('carregarHistoricoJogadora: erro', error);
+                el.innerHTML = 'Erro ao carregar histórico';
+                return;
+            }
+
+            const rows = (data || []).map(x => ({
+                epoca: x.epoca || '-',
+                escalao_equipa: x.escalao_equipa || '-',
+                jogos: Number(x.jogos) || 0,
+                golos: Number(x.golos) || 0,
+                assistencias: Number(x.assistencias) || 0,
+                golos_sofridos: Number(x.golos_sofridos) || 0,
+            }));
+
+            // ordem por época (desc para ficar estilo carreira recente primeiro; se quiser asc muda aqui)
+            rows.sort((a, b) => String(b.epoca).localeCompare(String(a.epoca), 'pt'));
+
+            if (!rows.length) {
+                el.innerHTML = 'Sem histórico no clube.';
+                return;
+            }
+
+            el.innerHTML = `
+                <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th style="background:#0e603f; color:#fff; padding:10px 12px; font-size:12px;">Época</th>
+                            <th style="background:#0e603f; color:#fff; padding:10px 12px; font-size:12px;">Escalão</th>
+                            <th style="background:#0e603f; color:#fff; padding:10px 12px; font-size:12px;">Jogos</th>
+                            <th style="background:#0e603f; color:#fff; padding:10px 12px; font-size:12px;">Golos</th>
+                            <th style="background:#0e603f; color:#fff; padding:10px 12px; font-size:12px;">Assist.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map(r => `
+                            <tr>
+                                <td style="padding:10px 12px; border-bottom:1px solid #f0f4f2;">${r.epoca}</td>
+                                <td style="padding:10px 12px; border-bottom:1px solid #f0f4f2;">${r.escalao_equipa}</td>
+                                <td style="padding:10px 12px; border-bottom:1px solid #f0f4f2; text-align:right;">${r.jogos}</td>
+                                <td style="padding:10px 12px; border-bottom:1px solid #f0f4f2; text-align:right;">${r.golos}</td>
+                                <td style="padding:10px 12px; border-bottom:1px solid #f0f4f2; text-align:right;">${r.assistencias}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
         async function salvarEdicaoVinculo() {
+
             const id = document.getElementById('ev_id').value;
             const tipo = document.getElementById('ev_tipo').value;
             const participante = document.getElementById('ev_participante').value;
@@ -1466,18 +1589,18 @@
             let maisNova = null, maisVelha = null;
             let artilheira = null, liderAssist = null;
 
-            // defensivo: se não houver artilheira/líder inicial, mantém-se como null
-            if (ativas.length > 0) {
+            // Por requisito: média de idades SOMENTE das ativas
+            const listaIdades = ativas.length > 0 ? ativas : []; 
+            if (listaIdades.length > 0) {
                 artilheira = ativas[0];
                 liderAssist = ativas[0];
             } else {
-                // fallback para garantir que não quebra quando não há ativas
+                // fallback defensivo (para não quebrar UI)
                 artilheira = atletas[0];
                 liderAssist = atletas[0];
             }
 
-
-            atletas.forEach(j => {
+            listaIdades.forEach(j => {
                 const idade = calcularIdade(j.data_nascimento);
                 somaIdades += idade;
 
@@ -1487,23 +1610,25 @@
                 if((j.assistencias_clube || 0) > (liderAssist.assistencias_clube || 0)) liderAssist = j;
             });
 
-            document.getElementById('st_media_idade').innerText = (somaIdades / atletas.length).toFixed(1) + " anos";
+            const media = listaIdades.length > 0 ? (somaIdades / listaIdades.length).toFixed(1) : '0.0';
+            document.getElementById('st_media_idade').innerText = `${media} anos`;
             document.getElementById('st_mais_nova').innerHTML = maisNova ? `${maisNova.nome}<br><span style="font-size:13px;color:#666">${maisNova.idade} anos</span>` : '-';
             document.getElementById('st_mais_velha').innerHTML = maisVelha ? `${maisVelha.nome}<br><span style="font-size:13px;color:#666">${maisVelha.idade} anos</span>` : '-';
             document.getElementById('st_artilheira').innerHTML = artilheira ? `${artilheira.nome_desportivo}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube || 0} golos</span>` : '-';
             document.getElementById('st_assist').innerHTML = liderAssist ? `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>` : '-';
 
-
             // --- Gráfico de nacionalidades (relativo) ---
-            const nacionalidadeCount = {};
+            // Para requisito: gráfico de nacionalidades de ATIVAS e outro de TODAS.
+            // Por agora: mantém o gráfico existente como ATIVAS.
+            const nacionalidadeCountAtivas = {};
             (ativas || []).forEach(j => {
                 const nat = normalizarNacionalidade(j.nacionalidade);
-                nacionalidadeCount[nat] = (nacionalidadeCount[nat] || 0) + 1;
+                nacionalidadeCountAtivas[nat] = (nacionalidadeCountAtivas[nat] || 0) + 1;
             });
 
-            const labels = Object.keys(nacionalidadeCount).sort((a, b) => (nacionalidadeCount[b] - nacionalidadeCount[a]) || a.localeCompare(b));
+            const labelsAtivas = Object.keys(nacionalidadeCountAtivas).sort((a, b) => (nacionalidadeCountAtivas[b] - nacionalidadeCountAtivas[a]) || a.localeCompare(b));
             const totalAtivas = (ativas || []).length;
-            const dataPercent = labels.map(l => totalAtivas > 0 ? (nacionalidadeCount[l] / totalAtivas * 100) : 0);
+            const dataPercentAtivas = labelsAtivas.map(l => totalAtivas > 0 ? (nacionalidadeCountAtivas[l] / totalAtivas * 100) : 0);
 
             const canvas = document.getElementById('chartNacionalidades');
             if (canvas) {
@@ -1513,14 +1638,14 @@
                     chartNacionalidadesInstancia = null;
                 }
 
-                if (labels.length > 0) {
+                if (labelsAtivas.length > 0) {
                     chartNacionalidadesInstancia = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels,
+                            labels: labelsAtivas,
                             datasets: [{
-                                label: '% atletas',
-                                data: dataPercent,
+                                label: '% atletas (ativas)',
+                                data: dataPercentAtivas,
                                 backgroundColor: 'rgba(0,166,80,0.45)',
                                 borderColor: 'rgba(0,166,80,0.95)',
                                 borderWidth: 1,
@@ -1555,7 +1680,7 @@
                 }
             }
 
-            // --- Rankings Top 5 ---
+            // --- Rankings Top 5 (mantidos) ---
             const topJogos = obterTopRanking(ativas, 'jogos_clube', 'nome_desportivo', 5);
             const topGolos = obterTopRanking(ativas, 'golos_clube', 'nome_desportivo', 5);
             const topAssist = obterTopRanking(ativas, 'assistencias_clube', 'nome_desportivo', 5);
@@ -1563,7 +1688,129 @@
             renderRanking('rank_jogos', topJogos, 'jogos');
             renderRanking('rank_golos', topGolos, 'golos');
             renderRanking('rank_assistencias', topAssist, 'assist.');
+
+            // --- Plantel por época + escalão ---
+            await inicializarFiltrosPlantel();
+            await atualizarPlantelPorEpocaEScalao();
         }
+
+        // --- Plantel por Época + Escalão ---
+        let cacheVinculoEpocasPlantel = [];
+
+        async function inicializarFiltrosPlantel() {
+            if (!dbClient) return;
+            const selEpoca = document.getElementById('f_epoca_plantel');
+            if (!selEpoca) return;
+
+            const { data, error } = await dbClient.from('vinculo_epocas').select('epoca, escalao_equipa');
+            if (error) {
+                console.error('inicializarFiltrosPlantel: erro', error);
+                selEpoca.innerHTML = '<option value="">--</option>';
+                return;
+            }
+
+            const eps = Array.from(new Set((data || []).map(x => (x.epoca || '').trim()).filter(Boolean)));
+            eps.sort((a, b) => String(b).localeCompare(String(a), 'pt'));
+
+            selEpoca.innerHTML = eps.map(ep => `<option value="${ep}">${ep}</option>`).join('');
+
+            // mantém seleção atual se existir, senão escolhe o primeiro
+            if (eps.length > 0 && !selEpoca.value) {
+                selEpoca.value = eps[0];
+            }
+
+            cacheVinculoEpocasPlantel = data || [];
+        }
+
+        function mapEscalaoValor(raw) {
+            const v = String(raw || '').toLowerCase().trim();
+            const ordem = ['traquinas', 'iniciadas', 'juniores', 'seniores'];
+            if (ordem.includes(v)) return v;
+            return v;
+        }
+
+        function renderRankingPlantel(containerId, rankingItems, valorLabel) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+
+            if (!rankingItems || rankingItems.length === 0) {
+                el.innerHTML = `<div style="color:#777; font-size:13px;">Sem dados</div>`;
+                return;
+            }
+
+            el.innerHTML = rankingItems.map((x, idx) => {
+                const pos = idx + 1;
+                const nome = x.nome_desportivo || '-';
+                const valor = x.valor ?? 0;
+                return `
+                    <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:8px;">
+                        <div style="min-width:24px; font-weight:800; color:#0e603f;">#${pos}</div>
+                        <div style="flex:1; font-weight:700; color:#2c3d34;">${nome}</div>
+                        <div style="font-weight:800; color:#0e603f;">${valor} ${valorLabel}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function atualizarPlantelPorEpocaEScalao() {
+            if (!dbClient) return;
+            const selEpoca = document.getElementById('f_epoca_plantel');
+            const selEscalao = document.getElementById('f_escalao_plantel');
+            if (!selEpoca || !selEscalao) return;
+
+            const epoca = selEpoca.value || '';
+            const escalao = mapEscalaoValor(selEscalao.value);
+
+            const lbl = document.getElementById('lbl_plantel_selecionado');
+            if (lbl) lbl.innerText = epoca && escalao ? `${epoca} - ${escalao}` : '-';
+
+            const { data, error } = await dbClient.from('vinculo_epocas').select(`
+                id_jogadora, epoca, escalao_equipa,
+                jogos, golos, assistencias,
+                jogadoras(id_jogadora, nome_desportivo, ativo)
+            `).eq('epoca', epoca).eq('escalao_equipa', escalao);
+
+            if (error) {
+                console.error('atualizarPlantelPorEpocaEScalao: erro', error);
+                document.getElementById('rank_plantel_jogos').innerHTML = '';
+                document.getElementById('rank_plantel_golos').innerHTML = '';
+                document.getElementById('rank_plantel_assistencias').innerHTML = '';
+                return;
+            }
+
+            const vincs = data || [];
+
+            // ranking precisa agrupar por atleta (mesmo atleta pode aparecer várias vezes na base)
+            const agr = {}; // id_jogadora -> {nome, jogos, golos, assistencias}
+            vincs.forEach(v => {
+                const id = v.id_jogadora;
+                if (!id) return;
+                const nome = v.jogadoras ? v.jogadoras.nome_desportivo : '-';
+                const key = String(id);
+                if (!agr[key]) {
+                    agr[key] = { nome_desportivo: nome, jogos: 0, golos: 0, assistencias: 0, ativo: v.jogadoras ? v.jogadoras.ativo : false };
+                }
+                agr[key].jogos += Number(v.jogos) || 0;
+                agr[key].golos += Number(v.golos) || 0;
+                agr[key].assistencias += Number(v.assistencias) || 0;
+            });
+
+            const arr = Object.values(agr);
+            arr.sort((a, b) => b.jogos - a.jogos || a.nome_desportivo.localeCompare(b.nome_desportivo));
+            const topJogos = arr.slice(0, 5).map(x => ({ nome_desportivo: x.nome_desportivo, valor: x.jogos }));
+
+            arr.sort((a, b) => b.golos - a.golos || a.nome_desportivo.localeCompare(b.nome_desportivo));
+            const topGolos = arr.slice(0, 5).map(x => ({ nome_desportivo: x.nome_desportivo, valor: x.golos }));
+
+            arr.sort((a, b) => b.assistencias - a.assistencias || a.nome_desportivo.localeCompare(b.nome_desportivo));
+            const topAssist = arr.slice(0, 5).map(x => ({ nome_desportivo: x.nome_desportivo, valor: x.assistencias }));
+
+            renderRankingPlantel('rank_plantel_jogos', topJogos, 'jogos');
+            renderRankingPlantel('rank_plantel_golos', topGolos, 'golos');
+            renderRankingPlantel('rank_plantel_assistencias', topAssist, 'assist.');
+        }
+
+
 
 
         window.onload = () => {
