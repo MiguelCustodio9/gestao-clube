@@ -6,6 +6,8 @@
     <title>SGC - Núcleo SCP Castelo Branco</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
     <style>
         :root {
             --primary: #005a43;
@@ -365,7 +367,33 @@
                 <div class="stat-card" style="border-left-color: #e91e63;"><h3>Melhor Marcadora</h3><p id="st_artilheira" style="font-size:16px;">-</p></div>
                 <div class="stat-card" style="border-left-color: #9c27b0;"><h3>Líder de Assistências</h3><p id="st_assist" style="font-size:16px;">-</p></div>
             </div>
+
+            <div class="card" style="margin-top:20px;">
+                <h2 style="margin-bottom:10px;">Nacionalidades (relativo)</h2>
+                <div style="max-width:900px;">
+                    <canvas id="chartNacionalidades" height="110"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:20px;">
+                <h2 style="margin-bottom:10px;">Ranking (Top 5)</h2>
+                <div class="grid-stats" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                    <div class="stat-card" style="text-align:left; border-left-color:#00a650;">
+                        <h3 style="margin-bottom:12px;">Jogos</h3>
+                        <div id="rank_jogos"></div>
+                    </div>
+                    <div class="stat-card" style="text-align:left; border-left-color:#e91e63;">
+                        <h3 style="margin-bottom:12px;">Golos</h3>
+                        <div id="rank_golos"></div>
+                    </div>
+                    <div class="stat-card" style="text-align:left; border-left-color:#9c27b0;">
+                        <h3 style="margin-bottom:12px;">Assistências</h3>
+                        <div id="rank_assistencias"></div>
+                    </div>
+                </div>
+            </div>
         </section>
+
     </main>
 
     <div id="modalEditarJogadora" class="modal">
@@ -1381,20 +1409,73 @@
 
         // --- CÁLCULO DE ESTATÍSTICAS ---
         // CORRIGIDO: alterado de .nome para .nome_desportivo para as estatísticas funcionarem a 100%
+        function normalizarNacionalidade(n) {
+            const v = (n ?? '').toString().trim();
+            return v ? v : 'Desconhecida';
+        }
+
+        function renderRanking(containerId, rankingItems, valorLabel) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+
+            if (!rankingItems || rankingItems.length === 0) {
+                el.innerHTML = `<div style="color:#777; font-size:13px;">Sem dados</div>`;
+                return;
+            }
+
+            el.innerHTML = rankingItems.map((x, idx) => {
+                const pos = idx + 1;
+                const nome = x.nome_desportivo || '-';
+                const valor = x.valor ?? 0;
+                return `
+                    <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:8px;">
+                        <div style="min-width:24px; font-weight:800; color:#0e603f;">#${pos}</div>
+                        <div style="flex:1; font-weight:700; color:#2c3d34;">${nome}</div>
+                        <div style="font-weight:800; color:#0e603f;">${valor} ${valorLabel}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function obterTopRanking(ativas, campoValor, campoNome, topN = 5) {
+            const ordenado = (ativas || [])
+                .map(a => ({
+                    nome_desportivo: a[campoNome],
+                    valor: Number(a[campoValor]) || 0,
+                }))
+                .sort((x, y) => (y.valor || 0) - (x.valor || 0) || String(x.nome_desportivo || '').localeCompare(String(y.nome_desportivo || '')));
+
+            return ordenado.slice(0, topN).filter(x => x.nome_desportivo);
+        }
+
+        let chartNacionalidadesInstancia = null;
+
         async function calcularEstatisticas() {
             const { data: atletas } = await dbClient.from('jogadoras').select('*');
             if(!atletas || atletas.length === 0) return;
 
             const ativas = atletas.filter(x => x.ativo);
             const inativas = atletas.filter(x => !x.ativo);
-            
+
             document.getElementById('st_total').innerText = atletas.length;
             document.getElementById('st_ativas').innerText = ativas.length;
             document.getElementById('st_inativas').innerText = inativas.length;
 
+            // Cards existentes (mantidos como estavam)
             let somaIdades = 0;
             let maisNova = null, maisVelha = null;
-            let artilheira = atletas[0], liderAssist = atletas[0];
+            let artilheira = null, liderAssist = null;
+
+            // defensivo: se não houver artilheira/líder inicial, mantém-se como null
+            if (ativas.length > 0) {
+                artilheira = ativas[0];
+                liderAssist = ativas[0];
+            } else {
+                // fallback para garantir que não quebra quando não há ativas
+                artilheira = atletas[0];
+                liderAssist = atletas[0];
+            }
+
 
             atletas.forEach(j => {
                 const idade = calcularIdade(j.data_nascimento);
@@ -1409,9 +1490,81 @@
             document.getElementById('st_media_idade').innerText = (somaIdades / atletas.length).toFixed(1) + " anos";
             document.getElementById('st_mais_nova').innerHTML = maisNova ? `${maisNova.nome}<br><span style="font-size:13px;color:#666">${maisNova.idade} anos</span>` : '-';
             document.getElementById('st_mais_velha').innerHTML = maisVelha ? `${maisVelha.nome}<br><span style="font-size:13px;color:#666">${maisVelha.idade} anos</span>` : '-';
-            document.getElementById('st_artilheira').innerHTML = `${artilheira.nome_desportivo}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube || 0} golos</span>`;
-            document.getElementById('st_assist').innerHTML = `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>`;
+            document.getElementById('st_artilheira').innerHTML = artilheira ? `${artilheira.nome_desportivo}<br><span style="font-size:13px;color:#666">${artilheira.golos_clube || 0} golos</span>` : '-';
+            document.getElementById('st_assist').innerHTML = liderAssist ? `${liderAssist.nome_desportivo}<br><span style="font-size:13px;color:#666">${liderAssist.assistencias_clube || 0} assist.</span>` : '-';
+
+
+            // --- Gráfico de nacionalidades (relativo) ---
+            const nacionalidadeCount = {};
+            (ativas || []).forEach(j => {
+                const nat = normalizarNacionalidade(j.nacionalidade);
+                nacionalidadeCount[nat] = (nacionalidadeCount[nat] || 0) + 1;
+            });
+
+            const labels = Object.keys(nacionalidadeCount).sort((a, b) => (nacionalidadeCount[b] - nacionalidadeCount[a]) || a.localeCompare(b));
+            const totalAtivas = (ativas || []).length;
+            const dataPercent = labels.map(l => totalAtivas > 0 ? (nacionalidadeCount[l] / totalAtivas * 100) : 0);
+
+            const canvas = document.getElementById('chartNacionalidades');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (chartNacionalidadesInstancia) {
+                    chartNacionalidadesInstancia.destroy();
+                    chartNacionalidadesInstancia = null;
+                }
+
+                if (labels.length > 0) {
+                    chartNacionalidadesInstancia = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: '% atletas',
+                                data: dataPercent,
+                                backgroundColor: 'rgba(0,166,80,0.45)',
+                                borderColor: 'rgba(0,166,80,0.95)',
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => {
+                                            const v = context.parsed.y ?? 0;
+                                            return `${v.toFixed(1)}%`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: (value) => `${value}%`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    canvas.style.display = 'none';
+                }
+            }
+
+            // --- Rankings Top 5 ---
+            const topJogos = obterTopRanking(ativas, 'jogos_clube', 'nome_desportivo', 5);
+            const topGolos = obterTopRanking(ativas, 'golos_clube', 'nome_desportivo', 5);
+            const topAssist = obterTopRanking(ativas, 'assistencias_clube', 'nome_desportivo', 5);
+
+            renderRanking('rank_jogos', topJogos, 'jogos');
+            renderRanking('rank_golos', topGolos, 'golos');
+            renderRanking('rank_assistencias', topAssist, 'assist.');
         }
+
 
         window.onload = () => {
             console.debug('dbClient available?', !!dbClient);
